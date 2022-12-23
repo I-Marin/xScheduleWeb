@@ -1,0 +1,79 @@
+body {
+  background-image: url('../img/fondo.jpg');
+  background-repeat: no-repeat repeat-y;
+  background-size: 100%;
+  font-family: 'Verdana';
+}
+
+.titulo {
+  font-family: Verdana;
+  font-weight: bold;
+  color: aliceblue
+}
+
+h3.titulo {
+  color: red;
+}
+
+#cola {
+  background-color: rgba(245, 69, 57, 0.945);
+  margin: 2em 0 2em 0;
+}
+
+#sonando {
+  background-color: rgba(245, 154, 17, 0.945);
+}
+
+#cancion_sonando {
+  position: relative;
+  xxpadding: 0px;
+}
+
+
+#cancion_sonando_span {
+  padding: 0.7em;
+}
+
+#barra-progreso {
+  background-color: rgb(168, 96, 2);
+  border-radius: 10px;
+}
+
+#canciones {
+  background-color: rgba(83, 185, 0, 0.884);
+  margin-bottom: 2em;
+}
+
+#juegos {
+  background-color: rgba(255, 251, 37, 0.884);
+  margin-bottom: 2em;
+}
+
+.seleccionable {
+  cursor: pointer;
+}
+
+.seleccionable:hover {
+  background-color: rgb(255, 137, 129);
+  color: aliceblue;
+  transition: 500ms;
+}
+
+.bordes {
+  border-radius: 10px;
+}
+
+.cont {
+  padding: 0.1em 1em 1em 1em;
+}
+
+.cont>h3 {
+  margin: 0.7em;
+}
+
+.cont>div {
+  margin: 1em 0em 1em 0em;
+  padding: 0.7em;
+  background-color: aliceblue;
+  border-radius: 10px;
+}

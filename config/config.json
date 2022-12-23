@@ -1,0 +1,103 @@
+{
+    "BASE_URL": {
+        "IP": "http://192.168.1.99",
+        "WEB": "http://micasasevedelejos.tudelanicos.com"        
+    },
+
+    "PORT": {
+        "XLIGTHS": "49913",
+        "XSCHEDULE": "31500",
+        "WEBSERVER": "3000"
+    },
+
+    "PLAYLIST": {
+        "SONGS": "CANCIONES",
+        "ANIMATIONS": "ANIMATIONS",
+        "DEDICATIONS": "DEDICATORIAS"
+    },
+
+    "URL": {
+        "CHOOSE_SONG": "/index.html",
+        "COMENTS": "/comentarios.html"
+    },
+
+    "QUERY"    : {
+        "BASE": "/xScheduleQuery?Query=",
+        "GET_QUEUED_STEPS": "GetQueuedSteps",
+        "GET_PLAYING_STATUS": "GetPlayingStatus",
+        "GET_PLAYLIST_STEPS": "GetPlayListSteps"
+    },
+
+    "COMMAND"  : {
+        "XSCHEDULE": {
+            "BASE": "/xScheduleCommand?Command=",
+            "CLEAR_BACKGROUND": "Clear background playlist",
+            "SET_BACKGROUND": "Set playlist as background",
+            "ENQUEUE_SONG": "Enqueue playlist step",
+            "STOP_ANIMATIONS": "Stop specified playlist",
+            "SET_VOLUME": "Set volume to"
+        },
+
+        "XLIGTHS": {
+            "BASE": "/",
+            "OPEN_SEQUENCE": "openSequence?force=False&seq=",
+            "RENDER_ALL": "renderAll",
+            "SAVE_SEQUENCE": "saveSecuence",
+            "CLOSE_SEQUENCE": "closeSequence"
+        }
+    },
+
+    "DEDICATIONS" : {
+        "MAX": "5",
+        "SAVE_DIRECTORY": "C:/xLights/Show2022/secuencias/"
+    },
+
+    "COMENTS": {
+        "FILE_PATH": "./comentarios.txt",
+        "SEPARATOR": ";\n"
+    },
+
+    "SHOWS_OPTIONS": {
+        "PATH": "secuencias/",
+        "EXTENSION": ".xsq"
+    },
+    "SHOWS": [
+        "All I Want For Christmas is You",
+        "Animacion1",
+        "Animacion2",
+        "Animacion3",
+        "Animacion4",
+        "Animacion5",
+        "Animacion6",
+        "Animacion7",
+        "Animacion8",
+        "Animacion9",
+        "Animacion10",
+        "Animacion11",
+        "Campanadas",
+        "Cant stop the feeling",
+        "Christmas Tecno Mix",
+        "Crystalize - Christmas on Runway",
+        "Cuento de navidad",
+        "Cumpleaños Feliz",
+        "dedicatoria1",
+        "dedicatoria2",
+        "dedicatoria3",
+        "El Tamborilero - Rafael",
+        "Frosty the Snowman",
+        "Happy Christmas",
+        "Here Comes Santa Claus",
+        "Inicio Show",
+        "Let It Snow",
+        "Los peces en el rio",
+        "marruecos",
+        "Michael Jackson Mix",
+        "Noche de paz",
+        "Blanca Navidad - La Oreja de Van Gogh",
+        "Pentatonix Carol of the bells",
+        "Phineas and Ferb - Winter Vacation",
+        "Ping Pong Christmas",
+        "Show830",
+        "Star Wars"
+    ]
+}

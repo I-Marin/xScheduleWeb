@@ -6,137 +6,8 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="css/bootstrap.min.css" rel="stylesheet">
-  <link href="css/style.css" rel="stylesheet">
+  <link href="assets/css/comentarios.css" rel="stylesheet">
   <title>Comentarios</title>
-
-  <style>
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      background-image: url('./assets/img/fondo.jpg');
-      background-repeat: no-repeat repeat-y;
-      background-size: 100%;
-      font-family: 'Verdana';
-    }
-
-    .titulo {
-      font-family: Verdana;
-      font-weight: bold;
-      color: aliceblue
-    }
-
-    a#volver {
-      font-size: 20px;
-      color: red;
-      text-decoration: underline;
-    }
-
-    a#volver:hover {
-      color: rgb(115, 0, 0);
-    }
-
-    #comentarios {
-      background-color: rgba(245, 69, 57, 0.945);
-      margin: 2em 0 2em 0;
-    }
-
-    #comentarios > .comentario {
-      display: flex;
-      flex-direction: column;
-    }
-
-    #comentarios > .comentario> .nombre {
-      align-self: flex-end;
-    }
-
-    #comentarios > .comentario> .estrellas > span {
-      font-size: 15px;
-      color: orange;
-    }
-
-    #formulario_cont {
-      background-color: rgba(83, 185, 0, 0.884);
-      margin: 2em 0 2em 0;
-    }
-
-    .bordes {
-      border-radius: 10px;
-    }
-
-    .cont {
-      padding: 0.1em 1em 1em 1em;
-    }
-    
-    .cont > h3 {
-      margin: 0.7em;
-    }
-
-    .cont > div {
-      margin: 0.7em;
-      padding: 0.7em;
-      background-color: aliceblue;
-      border-radius: 10px;
-    }
-
-    form {
-      margin: 1.2em;
-      display: flex;
-      flex-direction: column;
-    }
-
-    form > * {
-      margin-top: 0.7em;
-      border-radius: 10px;
-      border: none;
-    }
-
-    form > textarea {
-      resize: none;
-    }
-
-    form > input:last-child {
-      width: 40%;
-      align-self: flex-end;
-    }
-
-    form > input {
-      height: 2em;
-    }    
-
-    form p {
-      text-align: left;
-      margin-left: 0.3em;
-    }
-
-    form label {
-      font-size: 30px;
-    }
-
-    input[type="radio"] {
-      display: none;
-    }
-
-    label {
-      color: black;
-    }
-
-    .clasificacion {
-      direction: rtl;
-      unicode-bidi: bidi-override;
-    }
-
-    label:hover,
-    label:hover ~ label {
-      color: orange;
-    }
-
-    input[type="radio"]:checked ~ label {
-      color: orange;
-    }
-
-    </style>
 
 </head>
 
@@ -144,12 +15,12 @@
   <div class="container p-3">
     
     <h1 class="mb-5 text-white titulo">COMENTARIOS</h1>
-    <a href="http://micasasevedelejos.tudelanicos.com:31500/xScheduleWeb/index.html" id="volver">Volver a la selección de canciones</a>
+    <a href="" id="volver">Volver a la selección de canciones</a>
 
     <div id="formulario_cont" class="mt-3 p-3 bordes cont">
       <h3 class="mb-3 text-white">Dejanos tu comentario o propuesta, ¡es de gran ayuda!</h3>
 
-      <form action="http://localhost:3000/comentarios" method="post" id="formComentarios">
+      <form action="" method="post" id="formComentarios">
         <input type="text" name="nombre" placeholder="Nombre" required>
         <textarea name="comentario" cols="30" rows="5" placeholder="Comentario o propuesta que te gustaría dejar" required></textarea>
         
@@ -177,46 +48,8 @@
     </div>
     
   </div>
-
-  <script src="assets/js/main.js"></script>
-
-  <script>
-    fetch('http://micasasevedelejos.tudelanicos.com:3000/comentario')
-    .then(res => res.json())
-    .then(res => 
-      res.comentarios.reverse().forEach(comentarioJSON => {
-        let divContainer = document.createElement('div')
-        document.getElementById('comentarios').append(divContainer)
-        console.log(divContainer)
-
-        divContainer.className = 'comentario card p-2 m-2'
-
-        let comentario    = document.createElement('p'),
-          nombre          = document.createElement('p'),
-          valoracionCont  = document.createElement('p')
-
-        comentario.innerHTML = '<b>Comentario:</b><br>' + comentarioJSON.comentario.replace(/\n/g,'<br>')
-
-        nombre.innerHTML = '-' + comentarioJSON.nombre
-        nombre.className = 'nombre'
-
-        valoracionCont.innerHTML = '<b>Valoración: </b><span>'
-        valoracionCont.className = 'estrellas'
-        let estrellas = document.createElement('span')
-        for(let i = 0; i < parseInt(comentarioJSON.estrellas); i++) 
-          estrellas.innerHTML += '★'
-        valoracionCont.append(estrellas)
-        
-        divContainer.append(valoracionCont)     
-        divContainer.append(comentario)
-        divContainer.append(nombre)   
-      })
-    )
-    .catch(err => {
-      alert('No se han podido cargar los comentarios, disculpe las molestias :\'(')
-      console.log(err)
-    })
-  </script>
+  
+  <script src="assets/js/comentarios.js"></script>
     
 </body>
 

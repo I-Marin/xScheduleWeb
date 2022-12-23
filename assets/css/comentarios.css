@@ -1,0 +1,126 @@
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-image: url('../img/fondo.jpg');
+  background-repeat: no-repeat repeat-y;
+  background-size: 100%;
+  font-family: 'Verdana';
+}
+
+.titulo {
+  font-family: Verdana;
+  font-weight: bold;
+  color: aliceblue
+}
+
+a#volver {
+  font-size: 20px;
+  color: red;
+  text-decoration: underline;
+}
+
+a#volver:hover {
+  color: rgb(115, 0, 0);
+}
+
+#comentarios {
+  background-color: rgba(245, 69, 57, 0.945);
+  margin: 2em 0 2em 0;
+}
+
+#comentarios > .comentario {
+  display: flex;
+  flex-direction: column;
+}
+
+#comentarios > .comentario> .nombre {
+  align-self: flex-end;
+}
+
+#comentarios > .comentario> .estrellas > span {
+  font-size: 15px;
+  color: orange;
+}
+
+#formulario_cont {
+  background-color: rgba(83, 185, 0, 0.884);
+  margin: 2em 0 2em 0;
+}
+
+.bordes {
+  border-radius: 10px;
+}
+
+.cont {
+  padding: 0.1em 1em 1em 1em;
+}
+
+
+.cont > h3 {
+  margin: 0.7em;
+}
+
+.cont > div {
+  margin: 0.7em;
+  padding: 0.7em;
+  background-color: aliceblue;
+  border-radius: 10px;
+}
+
+form {
+  margin: 1.2em;
+  display: flex;
+  flex-direction: column;
+}
+
+form > * {
+  margin-top: 0.7em;
+  border-radius: 10px;
+  border: none;
+}
+
+form > textarea {
+  resize: none;
+}
+
+form > input:last-child {
+  width: 40%;
+  align-self: flex-end;
+}
+
+form > input {
+  height: 2em;
+}
+    
+form p {
+  text-align: left;
+  margin-left: 0.3em;
+}
+
+form label {
+  font-size: 30px;
+}
+
+input[type="radio"] {
+  display: none;
+}
+
+label {
+  color: black;
+}
+
+.clasificacion {
+  direction: rtl;
+  unicode-bidi: bidi-override;
+}
+
+label:hover,
+label:hover ~ label {
+  color: orange;
+}
+
+input[type="radio"]:checked ~ label {
+  color: orange;
+}
