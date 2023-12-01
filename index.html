@@ -15,15 +15,19 @@
 <body class="">
   <div class="container p-3">
     <h1 class="mb-5 text-white titulo">BIENVENIDO AL SHOW MUSICAL</h1>
-    <h3 class="titulo">¡Deja tu comentario sobre el show <a href="http://micasasevedelejos.tudelanicos.com:31500/xScheduleWeb/comentarios.html">aqui</a>!</h3>
+
+    <div id="comentarios" class="mt-3 p-3 bordes cont">
+
+      <div class="card p-2 m-2 seleccionable" url="URL_CHOOSE_SONG" onCLick="location.href='http://micasasevedelejos.tudelanicos.com:31500/xScheduleWeb/comentarios.html'">DEJA TUS
+        COMENTARIOS</div>
+    </div>
 
     <div id="sonando" class="p-3 bordes cont">
       <h3 class="mb-3 text-white">SONANDO</h3>
-      <div id="barra-progreso"></div>
       <div id="cancion_sonando" class="card p-2 m-2 ">
         <span id="cancion_sonando_span"></span>
       </div>
-
+      <div id="barra-progreso"></div>
 
       <!-- CANCIONES EN COLA -->
     </div>
@@ -75,6 +79,7 @@
   </div>
 
   <!-- <script src="assets/js/bootstrap.min.js"></script> -->
+  <script type="application/javascript" src="assets/js/jsonUtils.js"></script>
   <script src="assets/js/main.js"></script>
 
   <script src="js/assets/jquery.min.js"></script>

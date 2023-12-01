@@ -3,12 +3,14 @@ body {
   background-repeat: no-repeat repeat-y;
   background-size: 100%;
   font-family: 'Verdana';
+  text-align: center;
 }
 
 .titulo {
   font-family: Verdana;
   font-weight: bold;
-  color: aliceblue
+  color: aliceblue;
+  -webkit-text-stroke: 1px black !important;
 }
 
 h3.titulo {
@@ -17,7 +19,6 @@ h3.titulo {
 
 #cola {
   background-color: rgba(245, 69, 57, 0.945);
-  margin: 2em 0 2em 0;
 }
 
 #sonando {
@@ -26,7 +27,6 @@ h3.titulo {
 
 #cancion_sonando {
   position: relative;
-  xxpadding: 0px;
 }
 
 
@@ -39,24 +39,22 @@ h3.titulo {
   border-radius: 10px;
 }
 
+#comentarios {
+  background-color: rgba(245, 69, 57, 0.945);
+}
+
 #canciones {
   background-color: rgba(83, 185, 0, 0.884);
-  margin-bottom: 2em;
 }
 
 #juegos {
-  background-color: rgba(255, 251, 37, 0.884);
+  background-color: rgba(245, 154, 17, 0.945);
   margin-bottom: 2em;
 }
 
-.seleccionable {
-  cursor: pointer;
-}
-
-.seleccionable:hover {
-  background-color: rgb(255, 137, 129);
+.text-white {
   color: aliceblue;
-  transition: 500ms;
+  -webkit-text-stroke: 0.3px black;
 }
 
 .bordes {
@@ -65,15 +63,21 @@ h3.titulo {
 
 .cont {
   padding: 0.1em 1em 1em 1em;
+  margin: 1em 0em 1em 0em;
 }
 
 .cont>h3 {
-  margin: 0.7em;
+  margin: 1em 0 1em 0;
 }
 
 .cont>div {
   margin: 1em 0em 1em 0em;
   padding: 0.7em;
   background-color: aliceblue;
+  opacity: 70%;
   border-radius: 10px;
+}
+
+.seleccionable {
+  opacity: 100% !important;
 }

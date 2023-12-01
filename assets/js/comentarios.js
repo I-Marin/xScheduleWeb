@@ -1,59 +1,40 @@
-var URL_COMENTS, URL_WEBSERVER
+readDataJSON()
+.then(data => {
+  var GET_COMENTS = data.GET_COMENTS
 
-// TODO leer el procesedData.json y asignar las urls
-/*
-var parts = [
-    new Blob(['you construct a file...'], {type: 'text/plain'}),
-    ' Same way as you do with blob',
-    new Uint16Array([33])
-];
-var file = new File(parts, 'config/procesedData.json', {
-    type: "overide/mimetype" 
-});
+  fetch(GET_COMENTS)
+  .then(res => res.json())
+  .then(res => 
+    res.comentarios.reverse().forEach(comentarioJSON => {
+      let divContainer = document.createElement('div')
+      document.getElementById('comentarios').append(divContainer)
+      console.log(divContainer)
 
-var fr = new FileReader()
-fr.onload = function(e) {
-  var data = JSON.parse(e.target.result)
-    URL_COMENTS = data.URL_COMENTS
-    URL_WEBSERVER = data.URL_WEBSERVER
-};
-fr.readAsText(file)
-*/
-document.getElementById('volver').setAttribute('href', URL_COMENTS)
-document.getElementById('formComentarios').setAttribute('action', URL_WEBSERVER + '/comentarios')
+      divContainer.className = 'comentario card p-2 m-2'
 
-fetch(URL_WEBSERVER + '/comentarios')
-.then(res => res.json())
-.then(res => 
-  res.comentarios.reverse().forEach(comentarioJSON => {
-    let divContainer = document.createElement('div')
-    document.getElementById('comentarios').append(divContainer)
-    console.log(divContainer)
+      let comentario    = document.createElement('p'),
+        nombre          = document.createElement('p'),
+        valoracionCont  = document.createElement('p')
 
-    divContainer.className = 'comentario card p-2 m-2'
+      comentario.innerHTML = '<b>Comentario:</b><br>' + comentarioJSON.comentario.replace(/\n/g,'<br>')
 
-    let comentario    = document.createElement('p'),
-      nombre          = document.createElement('p'),
-      valoracionCont  = document.createElement('p')
+      nombre.innerHTML = '-' + comentarioJSON.nombre
+      nombre.className = 'nombre'
 
-    comentario.innerHTML = '<b>Comentario:</b><br>' + comentarioJSON.comentario.replace(/\n/g,'<br>')
+      valoracionCont.innerHTML = '<b>Valoración: </b><span>'
+      valoracionCont.className = 'estrellas'
+      let estrellas = document.createElement('span')
+      for(let i = 0; i < parseInt(comentarioJSON.estrellas); i++) 
+        estrellas.innerHTML += '★'
+      valoracionCont.append(estrellas)
 
-    nombre.innerHTML = '-' + comentarioJSON.nombre
-    nombre.className = 'nombre'
-
-    valoracionCont.innerHTML = '<b>Valoración: </b><span>'
-    valoracionCont.className = 'estrellas'
-    let estrellas = document.createElement('span')
-    for(let i = 0; i < parseInt(comentarioJSON.estrellas); i++) 
-      estrellas.innerHTML += '★'
-    valoracionCont.append(estrellas)
-        
-    divContainer.append(valoracionCont)     
-    divContainer.append(comentario)
-    divContainer.append(nombre)   
-    })
-)
-.catch(err => {
-  alert('No se han podido cargar los comentarios, disculpe las molestias :\'(')
-  console.log(err)
+      divContainer.append(valoracionCont)     
+      divContainer.append(comentario) 
+      divContainer.append(nombre)   
+      })
+  )
+  .catch(err => {
+    alert('No se han podido cargar los comentarios, disculpe las molestias :\'(')
+    console.log(err)
+  })
 })

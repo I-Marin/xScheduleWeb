@@ -14,7 +14,7 @@ const {
     //xLightsCommand
     OPEN_SEQUENCE, RENDER_ALL, SAVE_SEQUENCE, CLOSE_SEQUENCE,
     //DEDICATIONS
-    MAX_DEDICATIONS, DEDICATIONS_PATH,
+    MAX_DEDICATIONS, SAVE_DIRECTORY,
     //Coments
     COMENTS_PATH, COMENTS_SEPARATOR,
     //Plalists
@@ -22,7 +22,9 @@ const {
     //Showas
     SHOWS,
     //Urls
-    URL_CHOOSE_SONG, URL_COMENTS, URL_WEBSERVER, WEBSERVER_PORT
+    URL_CHOOSE_SONG, URL_COMENTS, URL_WEBSERVER, WEBSERVER_PORT,
+    // WEBSERVER
+    WEBSERVER_SONGS, WEBSERVER_COMENTS
 } = require('../config/data')
 // Cogemos las funciones del utils
 const {
@@ -46,7 +48,7 @@ app.use(cors())
 
 
 
-app.get('/canciones', (req, res) => {
+app.get(WEBSERVER_SONGS, (req, res) => {
     axios.get(GET_QUEUED_STEPS)
     .then(resData => {
         axios.get(GET_PLAYING_STATUS)
@@ -85,7 +87,7 @@ app.get('/canciones', (req, res) => {
     .catch(err => console.log(err))
 })
 
-app.post('/canciones', (req, res) => {
+app.post(WEBSERVER_SONGS, (req, res) => {
     let body = req.body
     let cancion = body.cancion
 
@@ -98,7 +100,7 @@ app.post('/canciones', (req, res) => {
         fileName
     
     // Guardo el historico de canciones
-    txt = DEDICATIONS_PATH + 'canciones.txt'
+    txt = SAVE_DIRECTORY + 'canciones.txt'
     let now = new Date();
     fs.appendFileSync(txt, now + ' ' + cancion + '\n')
 
@@ -108,8 +110,8 @@ app.post('/canciones', (req, res) => {
 
         fileName = `dedicatoria${++this.i}`
         let seq = 'secuencias/' + fileName + '.xsq'
-        let mp3 = DEDICATIONS_PATH + fileName + '.mp3'
-        let txt = DEDICATIONS_PATH + fileName + '.txt'
+        let mp3 = SAVE_DIRECTORY + fileName + '.mp3'
+        let txt = SAVE_DIRECTORY + fileName + '.txt'
         console.log('DEDICATORIA: ' + dedicatoria + '\nARCHIVO: ' + fileName + '\n')
         new gTTS(dedicatoria, 'es')
             .save(mp3, (err, result) => {
@@ -117,7 +119,7 @@ app.post('/canciones', (req, res) => {
                     return console.log(err)
                 fs.writeFileSync(txt, dedicatoria.toUpperCase())
                 // Guardo el historico de dedicatorias
-                txt = DEDICATIONS_PATH + 'dedicatorias.txt'
+                txt = SAVE_DIRECTORY + 'dedicatorias.txt'
                 let now = new Date();
                 fs.appendFileSync(txt, now + ' ' + dedicatoria + '\n')
 
@@ -189,7 +191,7 @@ app.get('/renderall', (req, res) => {
     return res.status(200).json({ response: 'Renderizando' })
 })
 
-app.get('/comentarios', (req, res) => {
+app.get(WEBSERVER_COMENTS, (req, res) => {
     let comentarios = fs.readFileSync(COMENTS_PATH, {encoding: 'utf-8'})
     comentarios = comentarios.split(COMENTS_SEPARATOR)
     let comentariosValidados = []
@@ -213,7 +215,7 @@ app.get('/comentarios', (req, res) => {
     res.json({comentarios: comentariosValidados})
 })
 
-app.post('/comentarios', (req, res) => {
+app.post(WEBSERVER_COMENTS, (req, res) => {
     console.log(req.body)
     let request = req.body
     request.date = new Date()

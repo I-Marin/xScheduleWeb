@@ -9,15 +9,16 @@ const {
     COMENTS,
     SHOWS,
     SHOWS_OPTIONS,
-    URL
-} = require('./config')
+    URL,
+    SAVE_DIRECTORY
+} = require('./config.json')
 
 // Funciones para contruir los strings
 const baseUrl = (base, port) => `${base}:${port}`
 
-const xScheduleUrl = baseUrl(BASE_URL.IP, PORT.XSCHEDULE)
-const webServerUrl = baseUrl(BASE_URL.WEB, PORT.WEBSERVER)
-const xLigthsUrl = baseUrl(BASE_URL.IP, PORT.XLIGTHS)
+const xScheduleUrl = baseUrl(BASE_URL.XSCHEDULE, PORT.XSCHEDULE)
+const webServerUrl = baseUrl(BASE_URL.WEBSERVER, PORT.WEBSERVER)
+const xLigthsUrl = baseUrl(BASE_URL.XSCHEDULE, PORT.XLIGTHS)
 
 const xScheduleQuery = (query, parameters = []) => xScheduleUrl + QUERY.BASE + query + (parameters.length > 0 ? '&Parameters=' + parameters.join(',') 			: '')
 const xScheduleCommand = (command, parameters = []) => xScheduleUrl + COMMAND.XSCHEDULE.BASE + command + (parameters.length > 0 ? '&Parameters=' + parameters.join(',') 			: '')
@@ -43,17 +44,22 @@ let data = {
     SAVE_SEQUENCE			: xLightsCommand(COMMAND.XLIGTHS.SAVE_SEQUENCE),
     CLOSE_SEQUENCE			: xLightsCommand(COMMAND.XLIGTHS.CLOSE_SEQUENCE),
     //DEDICATIONS
-    MAX_DEDICATIONS        : parseInt(DEDICATIONS.MAX),
-    DEDICATIONS_PATH       : DEDICATIONS.SAVE_DIRECTORY,
-    //Coments
-    COMENTS_PATH           : COMENTS.FILE_PATH,
-    COMENTS_SEPARATOR      : COMENTS.SEPARATOR,
+    MAX_DEDICATIONS         : parseInt(DEDICATIONS.MAX),
+    SAVE_DIRECTORY          : SAVE_DIRECTORY,
+    //Coments   
+    COMENTS_PATH            : SAVE_DIRECTORY + COMENTS.FILE_PATH,
+    COMENTS_SEPARATOR       : COMENTS.SEPARATOR,
     //Playlists
     PLAYLIST                : PLAYLIST,
     //Url
-    URL_CHOOSE_SONG         : xScheduleUrl + URL.CHOOSE_SONG,
-    URL_COMENTS             : xScheduleUrl + URL.COMENTS,
+    URL_CHOOSE_SONG         : xScheduleUrl + URL.XSCHEDULE.CHOOSE_SONG,
+    URL_COMENTS             : xScheduleUrl + URL.XSCHEDULE.COMENTS,
     URL_WEBSERVER           : webServerUrl,
+    //webServer
+    WEBSERVER_SONGS         : URL.WEBSERVER.SONGS,
+    WEBSERVER_COMENTS       : URL.WEBSERVER.COMENTS,
+    GET_SONGS               : webServerUrl + URL.WEBSERVER.SONGS,
+    GET_COMENTS             : webServerUrl + URL.WEBSERVER.COMENTS,
     //Shows
     SHOWS                   : showsFormated,
     //webServerPort         
@@ -62,4 +68,4 @@ let data = {
 
 module.exports = data
 // Generamos un JSON, que va a ser más legible, para poder coger el JSON desde los js de los html
-fs.writeFileSync('procesedData.json', JSON.stringify(data, undefined, 1))
+fs.writeFileSync(__dirname + '/procesedData.json', JSON.stringify(data, undefined, 1))

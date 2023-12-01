@@ -15,12 +15,12 @@
   <div class="container p-3">
     
     <h1 class="mb-5 text-white titulo">COMENTARIOS</h1>
-    <a href="" id="volver">Volver a la selección de canciones</a>
+    <a url="URL_COMENTS" id="volver">Volver a la selección de canciones</a>
 
     <div id="formulario_cont" class="mt-3 p-3 bordes cont">
       <h3 class="mb-3 text-white">Dejanos tu comentario o propuesta, ¡es de gran ayuda!</h3>
 
-      <form action="" method="post" id="formComentarios">
+      <form url="GET_COMENTS" method="post" id="formComentarios">
         <input type="text" name="nombre" placeholder="Nombre" required>
         <textarea name="comentario" cols="30" rows="5" placeholder="Comentario o propuesta que te gustaría dejar" required></textarea>
         
@@ -49,6 +49,7 @@
     
   </div>
   
+  <script src="assets/js/jsonUtils.js"></script>
   <script src="assets/js/comentarios.js"></script>
     
 </body>

@@ -1,7 +1,7 @@
 {
     "BASE_URL": {
-        "IP": "http://192.168.1.99",
-        "WEB": "http://micasasevedelejos.tudelanicos.com"        
+        "XSCHEDULE": "http://micasasevedelejos.tudelanicos.com",
+        "WEBSERVER": "http://localhost"        
     },
 
     "PORT": {
@@ -17,8 +17,14 @@
     },
 
     "URL": {
-        "CHOOSE_SONG": "/index.html",
-        "COMENTS": "/comentarios.html"
+        "XSCHEDULE": {
+            "CHOOSE_SONG": "/xScheduleWeb/index.html",
+            "COMENTS": "/xScheduleWeb/comentarios.html"
+        },
+        "WEBSERVER": {
+            "SONGS": "/canciones",
+            "COMENTS": "/comentarios"
+        }
     },
 
     "QUERY"    : {
@@ -47,13 +53,14 @@
         }
     },
 
+    "SAVE_DIRECTORY": "C:/xLights/Show2022/secuencias/",
+
     "DEDICATIONS" : {
-        "MAX": "5",
-        "SAVE_DIRECTORY": "C:/xLights/Show2022/secuencias/"
+        "MAX": "5"
     },
 
     "COMENTS": {
-        "FILE_PATH": "./comentarios.txt",
+        "FILE_PATH": "/comentarios.txt",
         "SEPARATOR": ";\n"
     },
 
@@ -61,6 +68,7 @@
         "PATH": "secuencias/",
         "EXTENSION": ".xsq"
     },
+
     "SHOWS": [
         "All I Want For Christmas is You",
         "Animacion1",
