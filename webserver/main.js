@@ -7,19 +7,27 @@ const express = require('express'),
     port = 3000,
     decicatorias_max = 5
 
-const PLAYLIST_CANCIONES = 'CANCIONES',
-    PLAYLIST_ANIMACIONES = 'ANIMATIONS',
-    URL_GET_QUEUED_STEPS = 'http://192.168.1.99:31500/xScheduleQuery?Query=GetQueuedSteps',
-    URL_GET_PLAYING_STATUS = 'http://192.168.1.99:31500/xScheduleQuery?Query=GetPlayingStatus',
-    URL_CLEAR_BACKGROUND = 'http://192.168.1.99:31500/xScheduleCommand?Command=Clear background playlist',
-    URL_SET_BACKGROUND = playlist => 'http://192.168.1.99:31500/xScheduleCommand?Command=Set playlist as background&Parameters=' + playlist,
-    URL_GET_PLAYLIST_STEPS = 'http://192.168.1.99:31500/xScheduleQuery?Query=GetPlayListSteps&Parameters=' + PLAYLIST_CANCIONES,
-    URL_ENQUEUE_SONG = (songName, playlist) => 'http://192.168.1.99:31500/xScheduleCommand?Command=Enqueue playlist step&Parameters=' + playlist + ',' + songName,
-    URL_STOP_ANIMATIONS = playlist => 'http://192.168.1.99:31500/xScheduleCommand?Command=Stop specified playlist&Parameters=' + playlist,
-    URL_XLIGTHS_COMMAND = command => 'http://192.168.1.99:49913/' + command,
-    URL_SET_VOLUME = volumen => 'http://192.168.1.99:31500/xScheduleCommand?Command=Set volume to&Parameters=' + volumen,
-    FILE_COMENTARIOS = './comentarios.txt',
-    SEPARADOR = ';\n'
+const {
+    PLAYLIST_CANCIONES,
+    PLAYLIST_ANIMACIONES,
+    URL_GET_QUEUED_STEPS,
+    URL_GET_PLAYING_STATUS,
+    URL_CLEAR_BACKGROUND,
+    URL_SET_BACKGROUND,
+    URL_GET_PLAYLIST_STEPS,
+    URL_ENQUEUE_SONG,
+    URL_STOP_ANIMATIONS,
+    URL_XLIGTHS_COMMAND,
+    URL_SET_VOLUME,
+    URL_SET_TEST_MODE_ON,
+    URL_SET_TEST_MODE_OFF,
+    URL_STOP_ALL,
+    URL_SIGUIENTE,
+    FILE_COMENTARIOS,
+    SEPARADOR,
+} = require('./constants');
+
+const BASE_URL = require('./baseUrl')
 
 
 this.i = 0
@@ -29,13 +37,62 @@ this.cancionesCola = []
 this.cancionesSeleccionables = []
 this.cancionesEnProceso = [] // Guarda las canciones pendientes de encolar. Para quitarlas de la lista de seleccionables mientras se procesan
 this.sonando = ''
+this.colaInterna = [] // Aqui se guardan las peticiones de las canciones y los simones dice con datos internos
 
 
 app.use(express.json())
-app.use(express.urlencoded({extended: false}))
+app.use(express.urlencoded({ extended: false }))
 app.use(cors())
 
 
+app.get('/test_mode_on', (req, res) => {
+    console.log(URL_SET_TEST_MODE_ON)
+    axios.get(URL_SET_TEST_MODE_ON)
+        .then()
+        .catch(err => { console.log(err) })
+    res.json({
+        testmode: on
+    })
+}
+)
+
+app.get('/test_mode_off', (req, res) => {
+    console.log(URL_SET_TEST_MODE_OFF)
+    axios.get(URL_SET_TEST_MODE_OFF)
+        .then()
+        .catch(err => { console.log(err) })
+    res.json({
+        testmode: off
+    })
+}
+)
+
+app.get('/set_volume_to', (req, res) => {
+    let action3 = URL_SET_VOLUME(req.query.volumen)
+    axios.post(action3)
+        .then(() => console.log('Volumen al ' + req.query.volumen + ': ' + action3))
+        .catch(e => res.status(500).json({ response: 'No se ha podido modificar volumen: ' + e }))
+    res.json({
+        volumen: req.query.volumen
+    })
+}
+)
+
+app.get('/stop_all', (req, res) => {
+    axios.get(URL_STOP_ALL)
+        .then(res.json({ response: 'hecho' }))
+        .catch(err => res.json({ error: err.toString() }))
+
+}
+)
+
+app.get('/siguiente', (req, res) => {
+    axios.get(URL_SIGUIENTE)
+        .then(res.json({ response: 'hecho' }))
+        .catch(err => res.json({ error: err.toString() }))
+
+}
+)
 
 app.get('/canciones', (req, res) => {
     axios.get(URL_GET_QUEUED_STEPS)
@@ -43,7 +100,7 @@ app.get('/canciones', (req, res) => {
             axios.get(URL_GET_PLAYING_STATUS)
                 .then(resData2 => {
                     if (resData2.data.status == 'idle') {
-                        this.sonando = 'PUEDES ELEGIR LA PRÓXIMA CANCIÓN'
+                        this.sonando = ''
                         this.progreso = 100
                     }
                     else {
@@ -55,10 +112,11 @@ app.get('/canciones', (req, res) => {
                     resData.data.steps.forEach(element => {
                         this.lengthms = this.lengthms + parseInt(element.lengthms)
                     });
-                    this.cancionesCola = resData.data.steps.map(step => step.name)
+
+                    //this.cancionesCola = resData.data.steps.map(step => step.name)
                     this.cancionesSeleccionables = this.canciones.filter(can => !this.cancionesCola.includes(can))
                     this.cancionesSeleccionables = this.cancionesSeleccionables.filter(can => !this.cancionesEnProceso.includes(can))
-                    this.cancionesCola = this.cancionesCola.filter(can => !(can == resData2.data.step))
+                    //this.cancionesCola = this.cancionesCola.filter(can => !(can == resData2.data.step))
 
                     res.json(
                         {
@@ -76,8 +134,57 @@ app.get('/canciones', (req, res) => {
         .catch(err => { })
 })
 
+this.secuenciaSimon = []
+this.colors = ['rojo', 'verde', 'azul', 'amarillo']
+
+app.get('/simon', (req, res) => {
+    var index = this.colaInterna.map(elem => elem.code).indexOf(req.body.code) // Buscamos el index en el que esta el simon del usuario
+    if (index === -1) { // No existe el simon en la cola, se crea
+        this.colaInterna.push(req)
+        this.cancionesCola.push('Partida simon dice de ' + req.body.name)
+        return res.status(200).json({ status: 'inQueue', isNew: true })
+    } else if (index !== 0) { // Existe la partida pero no esta en primera posicion, se devuelve en estado de cola
+        return res.status(200).json({ status: 'inQueue', isNew: false })
+    } else {
+        return res.status(200).json({ status: 'running' })
+    }
+})
+
+app.post('/simon', (req, res) => {
+    var action = req.body.action
+    var secuenciaJugador = req.body.secuencia
+    var jugador = req.body.jugador
+    var colorIndexRandom = Math.floor(Math.random() * 3); // random entre 0 y 3
+    var isSequenceCorrect
+
+    if (action === 'start') { // Accion que llega cuando llega a la web de los controles del simon dice
+        this.secuenciaSimon.push(this.colors[colorIndexRandom])
+    } else if (action === 'select') { // Se captura la secuencia y se compara con la que hace simon
+        if (this.secuenciaSimon === secuenciaJugador) {
+            isSequenceCorrect = true
+        } else {
+            isSequenceCorrect = false
+        }
+    } else {
+        isSequenceCorrect = false
+    }
+
+    if (isSequenceCorrect === false) {
+        this.secuenciaSimon = []
+        // Se guardan los datos como nombre de jugador y aciertos
+        // Se ejecuta secuencia de error
+    } else {
+        // Se ejecuta secuencia de acierto
+        this.secuenciaSimon.push(this.colors[colorIndexRandom])
+        // Se ejecuta la secuencia con el nuevo color para la siguiente ronda
+    }
+
+    //console.log("[simon dice]: " + this.secuenciaSimon)
+    return res.status(200).json({ isSequenceCorrect: isSequenceCorrect === false ? false : true })
+})
+
 app.post('/canciones', (req, res) => {
-    let body = JSON.parse(req.body)
+    let body = req.body
     let cancion = body.cancion
 
     // let ahora = new Date();
@@ -90,6 +197,11 @@ app.post('/canciones', (req, res) => {
     //     return res.status(100).json({ response: 'No se pueden añadir más canciones a la cola, hay que esperar a que termine alguna' })   
     // if (this.lengthms >= 5 * 60 * 1000)
     //     return res.status(500).json({ message: 'Ya hay mas de 5 minutos de canciones, hay que esperar a que termine alguna' })
+    if (this.cancionesCola.filter(elemCola => elemCola.includes('simon')).length > 0) {
+        this.cancionesCola.push(cancion) // Metemos la cancion en cola para que se muestre en la web
+        this.colaInterna.push(req) // Metemos el object de la peticion para hacerla cuando no haya simones en cola
+        return
+    }
 
     this.cancionesEnProceso.push(cancion)
 
@@ -110,7 +222,7 @@ app.post('/canciones', (req, res) => {
         let mp3 = saveDirectory + fileName + '.mp3'
         let txt = saveDirectory + fileName + '.txt'
         console.log('DEDICATORIA: ' + dedicatoria + '\nARCHIVO: ' + fileName + '\n')
-        new gTTS(dedicatoria, 'es')
+        new gTTS('La siguiente canción tiene esta dedicatoria: ' + dedicatoria, 'es')
             .save(mp3, (err, result) => {
                 if (err)
                     return console.log(err)
@@ -125,55 +237,54 @@ app.post('/canciones', (req, res) => {
                 err = ''
                 let action1 = URL_XLIGTHS_COMMAND('openSequence' + '?force=False&seq=' + seq)
                 axios.get(action1)
-                .then(() => {
-                    // Renderizo
-                    let action2 = URL_XLIGTHS_COMMAND('renderAll')
-                    axios.get(action2)
                     .then(() => {
-                        // Guardo la secuencia
-                        let action3 = URL_XLIGTHS_COMMAND('saveSequence')
-                        axios.get(action3)
-                        .then(() => {
-                            let action4 = URL_XLIGTHS_COMMAND('closeSequence')
-                            axios.get(action4)
+                        // Renderizo
+                        let action2 = URL_XLIGTHS_COMMAND('renderAll')
+                        axios.get(action2)
                             .then(() => {
-                                let action5 = URL_ENQUEUE_SONG(fileName, 'DEDICATORIAS')
-                                axios.post(action5)
-                                .then(() => {
-                                    console.log('Dedicatoria añadida: ' + dedicatoria)
-                                    this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
-                                    encolarCancion(cancion)
-                                })
-                                .catch(e => {
-                                    console.log('No se ha podido añadir la secuencia\n' + ':\n ' + e)
-                                    this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
-                                    encolarCancion(cancion)
-                                })
-                                .catch(e => {
-                                    console.log('Error ' + action4 + ':\n ' + e + '\n\n')
-                                    this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
-                                    encolarCancion(cancion)
-                                })
-                            })
-                            .catch(e => {
-                                console.log('Error ' + action3 + ':\n ' + e + '\n\n')
-                                this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
-                                encolarCancion(cancion)
-                            })
-                        })
+                                // Guardo la secuencia
+                                let action3 = URL_XLIGTHS_COMMAND('saveSequence')
+                                axios.get(action3)
+                                    .then(() => {
+                                        let action4 = URL_XLIGTHS_COMMAND('closeSequence')
+                                        axios.get(action4)
+                                            .then(() => {
+                                                let action5 = URL_ENQUEUE_SONG(fileName, 'DEDICATORIAS')
+                                                axios.post(action5)
+                                                    .then(() => {
+                                                        console.log('Dedicatoria añadida: ' + dedicatoria)
+                                                        this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+                                                        encolarCancion(cancion)
+                                                    }) //then5
+                                                    .catch(e => {
+                                                        console.log('No se ha podido añadir la secuencia\n' + ':\n ' + e)
+                                                        this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+                                                        encolarCancion(cancion)
+                                                    }) //catch5
+                                            }) //then4
+                                            .catch(e => {
+                                                console.log('Error ' + action4 + ':\n ' + e + '\n\n')
+                                                this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+                                                encolarCancion(cancion)
+                                            }) //catch4
+                                    }) //then3
+                                    .catch(e => {
+                                        console.log('Error ' + action3 + ':\n ' + e + '\n\n')
+                                        this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+                                        encolarCancion(cancion)
+                                    }) //catch3
+                            }) //then2
                             .catch(e => {
                                 console.log('Error ' + action2 + ':\n ' + e + '\n\n')
                                 this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
                                 encolarCancion(cancion)
-                            })
-                    })
+                            }) //catch2
+                    }) //then1
                     .catch(e => {
                         console.log('Error ' + action1 + ':\n ' + e + '\n\n')
                         this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
                         encolarCancion(cancion)
-                    })
-                })
-
+                    }) //catch1
             }); // gTTS de la dedicatoria
 
         // var waitTill = new Date(new Date().getTime() + 1 * 1000);
@@ -261,61 +372,18 @@ app.get('/renderall', (req, res) => {
         'secuencias/Show830.xsq',
         'secuencias/Star Wars.xsq'
     ])
-
-    /*
-    renderizarCancion_async('secuencias/All I Want For Christmas is You.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion1.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion2.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion3.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion4.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion5.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion6.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion7.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion8.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion9.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion10.xsq')
-    .then(renderizarCancion_async('secuencias/Animacion11.xsq')
-    .then(renderizarCancion_async('secuencias/Campanadas.xsq')
-    .then(renderizarCancion_async('secuencias/Cant stop the feeling.xsq')
-    .then(renderizarCancion_async('secuencias/Christmas Tecno Mix.xsq')
-    .then(renderizarCancion_async('secuencias/Crystalize - Christmas on Runway.xsq')
-    .then(renderizarCancion_async('secuencias/Cuento de navidad.xsq')
-    .then(renderizarCancion_async('secuencias/Cumpleaños Feliz.xsq')
-    .then(renderizarCancion_async('secuencias/dedicatoria1.xsq')
-    .then(renderizarCancion_async('secuencias/dedicatoria2.xsq')
-    .then(renderizarCancion_async('secuencias/dedicatoria3.xsq')
-    .then(renderizarCancion_async('secuencias/El Tamborilero - Rafael.xsq')
-    .then(renderizarCancion_async('secuencias/Frosty the Snowman.xsq')
-    .then(renderizarCancion_async('secuencias/Happy Christmas.xsq')
-    .then(renderizarCancion_async('secuencias/Here Comes Santa Claus.xsq')
-    .then(renderizarCancion_async('secuencias/Inicio Show.xsq')
-    .then(renderizarCancion_async('secuencias/Let It Snow.xsq')
-    .then(renderizarCancion_async('secuencias/Los peces en el rio.xsq')
-    .then(renderizarCancion_async('secuencias/marruecos.xsq')
-    .then(renderizarCancion_async('secuencias/Michael Jackson Mix.xsq')
-    .then(renderizarCancion_async('secuencias/Noche de paz.xsq')
-    .then(renderizarCancion_async('secuencias/Blanca Navidad - La Oreja de Van Gogh.xsq')
-    .then(renderizarCancion_async('secuencias/Pentatonix Carol of the bells.xsq')
-    .then(renderizarCancion_async('secuencias/Phineas and Ferb - Winter Vacation.xsq')
-    .then(renderizarCancion_async('secuencias/Ping Pong Christmas.xsq')
-    .then(renderizarCancion_async('secuencias/Show830.xsq')
-    .then(renderizarCancion_async('secuencias/Star Wars.xsq')
-    ))))))))))))))))))))))))))))))))))))
-    */
-
-
     return res.status(500).json({ response: 'Renderizando' })
 })
 
 app.get('/comentarios', (req, res) => {
-    let comentarios = fs.readFileSync(FILE_COMENTARIOS, {encoding: 'utf-8'})
+    let comentarios = fs.readFileSync(FILE_COMENTARIOS, { encoding: 'utf-8' })
     comentarios = comentarios.split(SEPARADOR)
     let comentariosValidados = []
     comentarios.forEach(c => {
         let err = false
         try {
             c = JSON.parse(c)
-            console.log(c)
+            // console.log(c)
             for (let property in c) {
                 if (property !== 'nombre' && property !== 'comentario' && property !== 'estrellas' && property !== 'date')
                     err = true
@@ -327,60 +395,34 @@ app.get('/comentarios', (req, res) => {
         if (!err)
             comentariosValidados.push(c)
     })
-    console.log(comentariosValidados)
-    res.json({comentarios: comentariosValidados})
+    // console.log(comentariosValidados)
+    res.json({ comentarios: comentariosValidados })
 })
 
 app.post('/comentarios', (req, res) => {
-    console.log(req.body)
+    // console.log(req.body)
     let request = req.body
     request.date = new Date()
     fs.appendFileSync(FILE_COMENTARIOS, JSON.stringify(request) + SEPARADOR)
-    res.redirect('http://micasasevedelejos.tudelanicos.com:31500/xScheduleWeb/comentarios.html')
+    res.redirect(`http://${BASE_URL}:31500/xScheduleWeb/comentarios.html`)
 })
-
-
-
-app.listen(port, () => {
-    axios.get(URL_GET_PLAYLIST_STEPS)
-        .then(res => this.canciones = res.data.steps.map(step => step.name))
-        .catch(err => console.log(err))
-    console.log(`Marin Falcon app listening on http://micasasevedelejos.tudelanicos.com:${port}`)
-    console.log('Página de canciones: http://micasasevedelejos.tudelanicos.com:31500/xScheduleWeb/index.html')
-    console.log('Página de comentarios: http://micasasevedelejos.tudelanicos.com:31500/xScheduleWeb/comentarios.html')
-    startBackground()
-
-})
-
-Cola = []
 
 // Temporizador para poner ANIMACIONES
 function startBackground() {
-    setTimeout(startBackground, 15000, 'funky');
-    if (this.sonando != 'PUEDES ELEGIR LA PRÓXIMA CANCIÓN' && this.sonando != '') {
-        // Pongo las animaciones
-        action = URL_SET_BACKGROUND(PLAYLIST_ANIMACIONES)
-        axios.post(action)
-            .then(console.log('Animación puesta'))
-            .catch(e => console.log('No se han podido parar las animaciones: ' + e ))
-    }
-    // // Consulto las canciones en cola
-    // axios.get(URL_GET_QUEUED_STEPS)
-    //     .then(resData => {
-    //         Cola = resData.data.steps.map(step => step.name)
-    //         // Si no hay ninguna
-    //         if (Cola.length == 0) {
-    //             // Pongo las animaciones
-    //             action = URL_SET_BACKGROUND(PLAYLIST_ANIMACIONES)
-    //             axios.post(action)
-    //                 .then(() => { })
-    //                 .catch(e => res.status(500).json({ response: 'No se han podido parar las animaciones: ' + e }))
-    //         }
-    //     })
-    //     .catch(err => { })
+    axios.get(URL_GET_PLAYING_STATUS)
+        .then(resData => {
+            if (resData.data.status == 'idle') {
+                // Pongo las animaciones
+                let action = URL_SET_BACKGROUND(PLAYLIST_ANIMACIONES)
+                axios.post(action)
+                    .then(() => { })
+                    .catch(e => res.status(500).json({ response: 'No se han podido parar las animaciones: ' + e }))
+            }
 
-
+        })
+        .catch(err => { console.log(err) })
 }
+
 
 function renderizarCancion(cancion) {
     let action1 = URL_XLIGTHS_COMMAND('openSequence' + '?force=False&seq=' + cancion)
@@ -399,7 +441,7 @@ function renderizarCancion(cancion) {
                         .then(r => {
                             let action4 = URL_XLIGTHS_COMMAND('closeSequence')
                             return axios.get(action4)
-                                .then(console.log('Cerrada') )
+                                .then(console.log('Cerrada'))
                                 .catch(e => {
                                     console.log('Error ' + action4 + ':\n ' + e + '\n\n')
                                 })
@@ -435,15 +477,22 @@ async function renderizarCancion_async(cancion) {
 const renderSongsFromArray = songsNameArray => {
     if (songsNameArray.length <= 0)
         return
-    
+
     renderizarCancion_async(songsNameArray[0])
-    .then(() => {
-        songsNameArray.shift() // Eliminamos el primer valor del array
-        renderSongsFromArray(songsNameArray)
-    })
+        .then(() => {
+            songsNameArray.shift() // Eliminamos el primer valor del array
+            renderSongsFromArray(songsNameArray)
+        })
 }
 
 
+app.listen(port, () => {
+    axios.get(URL_GET_PLAYLIST_STEPS)
+        .then(res => this.canciones = res.data.steps.map(step => step.name))
+        .catch(err => console.log(err))
+    console.log(`Marin Falcon app listening on http://${BASE_URL}:${port}`)
+    console.log(`Página de canciones: http://${BASE_URL}:31500/xScheduleWeb/index.html`)
+    console.log(`Página de comentarios: http://${BASE_URL}:31500/xScheduleWeb/comentarios.html`)
 
-
-
+    setTimeout(startBackground, 15000, 'funky');
+})

@@ -68,7 +68,7 @@ function startXyzzy2() {
 
   if (xyzzy2Name == '') {
     //Default Name
-    xyzzy2Name = "Vergonzoso";
+    xyzzy2Name = "Voldemort";
   }
 
   xyzzy2Command('initialise', xyzzy2Matrix + ',' + xyzzy2Name);
@@ -96,18 +96,18 @@ function xyzzy2Restart() {
 }
 
 //websocket listener
-socket.addEventListener('message', function (event) {
+socket.addEventListener('message', function(event) {
   var response = JSON.parse(event.data);
   if (xyzzy2Status == '3') {
     updateXyzzy2(response);
   }
-  if (response.xyzzyevent != undefined) {
+  if (response.xyzzyevent != undefined){
 
-    if (response.xyzzyevent == 'initialised') {
+    if (response.xyzzyevent == 'initialised'){
       soundStart.play();
     }
 
-    if (response.xyzzyevent == 'movingleft' || response.xyzzyevent == 'movingright' || response.xyzzyevent == 'movingup' || response.xyzzyevent == 'movingdown') {
+    if (response.xyzzyevent == 'movingleft' || response.xyzzyevent == 'movingright' || response.xyzzyevent == 'movingup' || response.xyzzyevent == 'movingdown'){
       soundMove.play();
     }
   }
@@ -116,10 +116,10 @@ socket.addEventListener('message', function (event) {
 
 function xyzzy2StatusAJAX() {
 
-  var timer = window.setInterval(function () {
+  var timer = window.setInterval(function() {
     $.ajax({
       url: '/xyzzy2?c=q',
-      success: function (response) {
+      success: function(response) {
         //console.log(response);
         updateXyzzy2(response);
       }
@@ -134,10 +134,11 @@ function updateXyzzy2(response) {
     //update Score
     $("#xyzzyCurrentScore").html("Your Score: " + response.score);
 
-    if (response.score > lastScore) {
-      lastScore = response.score;
-      soundSuccess.play();
-    }
+	if (response.score > lastScore)
+	{
+		lastScore = response.score;
+		soundSuccess.play();
+	}
 
   } else if (response.result == 'gameover') {
     xyzzy2Status = "4";
@@ -170,12 +171,12 @@ function xyzzy2Command(c, p) {
     if (p != undefined) {
       $.ajax({
         url: '/xyzzy2?c=' + c,
-        success: function (response) { }
+        success: function(response) {}
       });
     } else {
       $.ajax({
         url: '/xyzzy2?c=' + c + '&p=' + p,
-        success: function (response) { }
+        success: function(response) {}
       });
     }
   }

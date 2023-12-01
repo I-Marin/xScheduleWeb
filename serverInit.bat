@@ -1,1 +1,1 @@
-node webserver/main.js
+cmd /c node webserver/main.js

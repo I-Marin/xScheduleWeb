@@ -1,13 +1,44 @@
-const URL_CANCIONES = 'http://micasasevedelejos.tudelanicos.com:3000/canciones',
-    SONGS_CONT = document.getElementById('canciones'),
-    PLAYING_CONT = document.getElementById('sonando'),
-    QUEUE_CONT = document.getElementById('cola')
+const isLocal = true
+const BASE_URL = isLocal ? '127.0.0.1'/*localhost*/ : '192.168.1.99'
+
+const URL_CANCIONES = `http://${BASE_URL}:3000/canciones`
+const URL_TEST_MODE_ON = `http://${BASE_URL}:3000/test_mode_on`
+const URL_TEST_MODE_OFF = `http://${BASE_URL}:3000/test_mode_off`
+const URL_STOP_ALL = `http://${BASE_URL}:3000/stop_all`
+const URL_SIGUIENTE = `http://${BASE_URL}:3000/siguiente`
+const URL_VOLUMEN = volumen => `http://${BASE_URL}:3000/set_volume_to?volumen=${volumen}`
+
+const SONGS_CONT = document.getElementById('canciones')
+const PLAYING_CONT = document.getElementById('sonando')
+const QUEUE_CONT = document.getElementById('cola')
+
+var linkComentarios = document.getElementById('link_comentarios')
+linkComentarios.setAttribute('href', linkComentarios.getAttribute('href').replace('$BASE_URL', BASE_URL))
 
 /* ******************************
     * DIV CANCIÓN SONANDO: '<div class="card p-2 m-2">' + name + '</div>'
     * DIV CANCIÓN SELECCIONABLE: '<div class="card p-2 m-2 seleccionable" onCLick="onSeleccionable(this)">' + name + '</div>'
 ****************************** */
 
+function siguiente() {
+    fetch(URL_SIGUIENTE)
+}
+
+function stopall() {
+    fetch(URL_STOP_ALL)
+}
+
+function testmodeon() {
+    fetch(URL_TEST_MODE_ON)
+}
+
+function testmodeoff() {
+    fetch(URL_TEST_MODE_OFF)
+}
+
+function volumen(vol) {
+    fetch(URL_VOLUMEN(vol))
+}
 
 const appendSongToDiv = (element, songName, isInQueue) => {
     let songDiv = document.createElement('div')
@@ -52,7 +83,7 @@ const onSeleccionable = selecionable => {
                 let ahora = new Date()
                 if (ahora.getHours() < 18 || (ahora.getHours() == 18 && ahora.getMinutes() < 30) || (ahora.getHours() == 21 && ahora.getMinutes() > 30) || ahora.getHours() >= 22) {
                     var passw = prompt('Pensamos en el bienestar de nuestros vecinos, por eso solo se puede seleccionar canciones de 18:30 a 21:30, ¡Vente entre esas horas y disfruta del espectáculo! ;)')
-                    if (passw != '131313') 
+                    if (passw != '131313')
                         return
                 }
 
@@ -61,26 +92,26 @@ const onSeleccionable = selecionable => {
                 if (dedicatoria != undefined) {
                     // Añadimos la canción a la cola
                     var url = URL_CANCIONES,
-                      params = {
-                        method: 'POST',
-                        mode: 'cors',
-                        body: JSON.stringify({
-                            cancion: selecionable.textContent,
-                            dedicatoria: dedicatoria
-                        }),
-                        headers: { 'Content-Type': 'application/json' },
-                      }
-                  
+                        params = {
+                            method: 'POST',
+                            mode: 'cors',
+                            body: JSON.stringify({
+                                cancion: selecionable.textContent,
+                                dedicatoria: dedicatoria
+                            }),
+                            headers: { 'Content-Type': 'application/json' },
+                        }
+
                     var request = new Request(url, params)
                     var resp_aux
-                  
+
                     fetch(request)
-                    .then(res => resp_aux = res.clone())
-                    .then(res => res.json())
-                    .then(res => {
-                      console.log('Cancion puesta a la cola')
-                    })
-                    .catch(err => console.log(err))
+                        .then(res => resp_aux = res.clone())
+                        .then(res => res.json())
+                        .then(res => {
+                            console.log('Cancion puesta a la cola')
+                        })
+                        .catch(err => console.log(err))
                 }
                 else { alert('Cancelada la selección de canción') }
             })
@@ -104,11 +135,11 @@ const getPlayList = () => {
                 cancionesSinReproducir = data.cancionesSinReproducir
 
             document.getElementById('cancion_sonando_span').innerHTML = data.sonando
-            //Eliminamos canciones de sonando
-            // divsSongsPlaying
-            //     .forEach(cancion => { if (cancion.id != 'barra-progreso') cancion.remove() })
-            //Añadimos cancion a sonando
-            // appendSongToDiv(PLAYING_CONT, data.sonando, true)
+            if (data.sonando == '') {
+                PLAYING_CONT.style = 'display:none;'
+            }
+            else
+                PLAYING_CONT.style = ''
             // Añadimos el progreso
             try {
                 barraProgreso = document.getElementById('barra-progreso')
@@ -118,14 +149,15 @@ const getPlayList = () => {
                 cantidadProgreso.innerHTML = data.progreso;
             } catch { }
 
-
-
-
-
             //Añadimos canciones a la cola
             cancionesCola
                 .filter(cancion => !songsQueue.includes(cancion))
                 .forEach(cancion => appendSongToDiv(QUEUE_CONT, cancion, true))
+            if (cancionesCola.length == 0) {
+                QUEUE_CONT.style = 'display:none;'
+            }
+            else
+                QUEUE_CONT.style = ''
 
             //Eliminamos canciones de la cola
             divsSongsQueue
@@ -147,6 +179,19 @@ const getPlayList = () => {
             console.log(error)
         })
     // console.log(i++)
+
+    // Oculto o muestro las capas de control con el parametro args=admin
+    var url = document.URL;
+
+    if (url.includes('admin')) {
+        document.getElementById('control').style = ''
+        document.getElementById('volumen').style = ''
+    }
+    else {
+        document.getElementById('control').style = 'display:none;'
+        document.getElementById('volumen').style = 'display:none;'
+    }
+
 }
 
 getPlayList()
