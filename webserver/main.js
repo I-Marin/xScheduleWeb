@@ -116,7 +116,7 @@ app.get('/canciones', (req, res) => {
                     //this.cancionesCola = resData.data.steps.map(step => step.name)
                     this.cancionesSeleccionables = this.canciones.filter(can => !this.cancionesCola.includes(can))
                     this.cancionesSeleccionables = this.cancionesSeleccionables.filter(can => !this.cancionesEnProceso.includes(can))
-                    //this.cancionesCola = this.cancionesCola.filter(can => !(can == resData2.data.step))
+                    this.cancionesCola = this.cancionesCola.filter(can => !(can == resData2.data.step))
 
                     res.json(
                         {
@@ -179,7 +179,7 @@ app.post('/simon', (req, res) => {
         // Se ejecuta la secuencia con el nuevo color para la siguiente ronda
     }
 
-    //console.log("[simon dice]: " + this.secuenciaSimon)
+    console.log("[simon dice]: " + this.secuenciaSimon)
     return res.status(200).json({ isSequenceCorrect: isSequenceCorrect === false ? false : true })
 })
 
@@ -197,8 +197,9 @@ app.post('/canciones', (req, res) => {
     //     return res.status(100).json({ response: 'No se pueden añadir más canciones a la cola, hay que esperar a que termine alguna' })   
     // if (this.lengthms >= 5 * 60 * 1000)
     //     return res.status(500).json({ message: 'Ya hay mas de 5 minutos de canciones, hay que esperar a que termine alguna' })
+    
+    this.cancionesCola.push(cancion) // Metemos la cancion en cola para que se muestre en la web
     if (this.cancionesCola.filter(elemCola => elemCola.includes('simon')).length > 0) {
-        this.cancionesCola.push(cancion) // Metemos la cancion en cola para que se muestre en la web
         this.colaInterna.push(req) // Metemos el object de la peticion para hacerla cuando no haya simones en cola
         return
     }
@@ -404,7 +405,7 @@ app.post('/comentarios', (req, res) => {
     let request = req.body
     request.date = new Date()
     fs.appendFileSync(FILE_COMENTARIOS, JSON.stringify(request) + SEPARADOR)
-    res.redirect(`http://${BASE_URL}:31500/xScheduleWeb/comentarios.html`)
+    res.redirect(`http://${BASE_URL("31500")}/xScheduleWeb/comentarios.html`)
 })
 
 // Temporizador para poner ANIMACIONES
@@ -490,9 +491,9 @@ app.listen(port, () => {
     axios.get(URL_GET_PLAYLIST_STEPS)
         .then(res => this.canciones = res.data.steps.map(step => step.name))
         .catch(err => console.log(err))
-    console.log(`Marin Falcon app listening on http://${BASE_URL}:${port}`)
-    console.log(`Página de canciones: http://${BASE_URL}:31500/xScheduleWeb/index.html`)
-    console.log(`Página de comentarios: http://${BASE_URL}:31500/xScheduleWeb/comentarios.html`)
+    console.log(`Marin Falcon app listening on http://${BASE_URL(port)}`)
+    console.log(`Página de canciones: http://${BASE_URL()}/xScheduleWeb/index.html`)
+    console.log(`Página de comentarios: http://${BASE_URL()}/xScheduleWeb/comentarios.html`)
 
     setTimeout(startBackground, 15000, 'funky');
 })

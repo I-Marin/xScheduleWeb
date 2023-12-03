@@ -15,6 +15,7 @@
       background-repeat: no-repeat repeat-y;
       background-size: 100%;
       font-family: 'Verdana';
+      backdrop-filter: blur(3px);
     }
 
     .titulo {
@@ -89,7 +90,71 @@
       background-color: aliceblue;
       border-radius: 10px;
     }
-  </style>
+
+    /* Modal simon dice */
+    .modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-contenido {
+  background-color: white;
+  padding: 20px;
+  width: 70%;
+  position: relative;
+  border-radius: 10px;
+}
+
+.cerrar {
+  color: #aaa;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cerrar:hover {
+  color: black;
+}
+
+.colores {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.color {
+  width: 150px;
+  height: 150px;
+  border-radius: 20px; /* Bordes redondeados */
+  cursor: pointer;
+}
+
+.rojo {
+  background-color: red;
+}
+
+.verde {
+  background-color: green;
+}
+
+.azul {
+  background-color: blue;
+}
+
+.amarillo {
+  background-color: yellow;
+}
+
+</style>
 
 </head>
 
@@ -97,7 +162,7 @@
   <div class="container p-3">
     <h1 class="mb-5 text-white titulo">BIENVENIDO AL SHOW MUSICAL</h1>
     <h3 class="titulo">¡Deja tu comentario sobre el show <a id="link_comentarios"
-        href="http://$BASE_URL:31500/xScheduleWeb/comentarios.html">aqui</a>!</h3>
+        href="http://$BASE_URL/xScheduleWeb/comentarios.html">aqui</a>!</h3>
 
     <div id="sonando" class="p-3 bordes cont">
       <h3 class="mb-3 text-white">SONANDO</h3>
@@ -123,6 +188,7 @@
     <div id="juegos" class="mt-3 p-3 bordes cont">
       <h3 class="mb-3 text-white">JUEGUITOS (en matriz / pantalla)</h3>
 
+      <div id="abrirModalBtn">Simon dice</div>
       <div class="card p-2 m-2 seleccionable" onCLick="openXyzzy()">Tetris</div>
       <div class="card p-2 m-2 seleccionable" onCLick="openXyzzy2()">Snake</div>
     </div>
@@ -156,8 +222,34 @@
     </div>
   </div>
 
+  <dialog id="simonModal">
+    <div class="modal-contenido">
+      <span class="cerrar" onclick="cerrarModal()">&times;</span>
+      <div class="colores">
+        <div class="color rojo"></div>
+        <div class="color verde"></div>
+        <div class="color azul"></div>
+        <div class="color amarillo"></div>
+      </div>
+    </div>
+  </dialog>
+
   <!-- <script src="assets/js/bootstrap.min.js"></script> -->
+  <script>var isWeb = true;</script>
+  <script src="webserver/baseUrl.js"></script>
   <script src="assets/js/main.js"></script>
+
+  <script>
+    document.getElementById('abrirModalBtn').addEventListener('click', abrirModal);
+
+    function abrirModal() {
+      document.getElementById('simonModal').showModal();
+    }
+
+    function cerrarModal() {
+      document.getElementById('simonModal').close();
+    }
+  </script>
 
   <script src="js/assets/jquery.min.js"></script>
   <script src="js/assets/bootstrap.min.js"></script>

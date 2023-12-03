@@ -1,19 +1,17 @@
-const isLocal = true
-const BASE_URL = isLocal ? '127.0.0.1'/*localhost*/ : '192.168.1.99'
 
-const URL_CANCIONES = `http://${BASE_URL}:3000/canciones`
-const URL_TEST_MODE_ON = `http://${BASE_URL}:3000/test_mode_on`
-const URL_TEST_MODE_OFF = `http://${BASE_URL}:3000/test_mode_off`
-const URL_STOP_ALL = `http://${BASE_URL}:3000/stop_all`
-const URL_SIGUIENTE = `http://${BASE_URL}:3000/siguiente`
-const URL_VOLUMEN = volumen => `http://${BASE_URL}:3000/set_volume_to?volumen=${volumen}`
+const URL_CANCIONES = `http://${BASE_URL('3000')}/canciones`
+const URL_TEST_MODE_ON = `http://${BASE_URL('3000')}/test_mode_on`
+const URL_TEST_MODE_OFF = `http://${BASE_URL('3000')}/test_mode_off`
+const URL_STOP_ALL = `http://${BASE_URL('3000')}/stop_all`
+const URL_SIGUIENTE = `http://${BASE_URL('3000')}/siguiente`
+const URL_VOLUMEN = volumen => `http://${BASE_URL('3000')}/set_volume_to?volumen=${volumen}`
 
 const SONGS_CONT = document.getElementById('canciones')
 const PLAYING_CONT = document.getElementById('sonando')
 const QUEUE_CONT = document.getElementById('cola')
 
 var linkComentarios = document.getElementById('link_comentarios')
-linkComentarios.setAttribute('href', linkComentarios.getAttribute('href').replace('$BASE_URL', BASE_URL))
+linkComentarios.setAttribute('href', linkComentarios.getAttribute('href').replace('$BASE_URL', BASE_URL('31500')))
 
 /* ******************************
     * DIV CANCIÓN SONANDO: '<div class="card p-2 m-2">' + name + '</div>'
@@ -183,14 +181,14 @@ const getPlayList = () => {
     // Oculto o muestro las capas de control con el parametro args=admin
     var url = document.URL;
 
-    if (url.includes('admin')) {
-        document.getElementById('control').style = ''
-        document.getElementById('volumen').style = ''
-    }
-    else {
-        document.getElementById('control').style = 'display:none;'
-        document.getElementById('volumen').style = 'display:none;'
-    }
+    //if (url.includes('admin')) {
+    //    document.getElementById('control').style = ''
+    //    document.getElementById('volumen').style = ''
+    //}
+    //else {
+    //    document.getElementById('control').style = 'display:none;'
+    //    document.getElementById('volumen').style = 'display:none;'
+    //}
 
 }
 
