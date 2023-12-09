@@ -136,41 +136,63 @@ app.get('/canciones', (req, res) => {
 
 this.secuenciaSimon = []
 this.colors = ['rojo', 'verde', 'azul', 'amarillo']
+this.temporizadoresSimon = {}
 
+// EJEMPLOS EN CARPETA DE EJEMPLOS
 app.get('/simon', (req, res) => {
-    var index = this.colaInterna.map(elem => elem.code).indexOf(req.body.code) // Buscamos el index en el que esta el simon del usuario
+    var { jugador, nuevaPartida } = req.body
+    var index = this.colaInterna.map(elem => elem.body.jugador).indexOf(jugador) // Buscamos el index en el que esta el simon del usuario
+      
+    var partidaString = 'Partida simon dice de '
+    if (index !== -1 && !nuevaPartida) {
+        return res.status(500).json({error: 'Ese nombre de jugador ya tiene una partida abierta, por favor seleccione otro nombre de usuario'})
+    }
+
+    // Reiniciar o crear un nuevo temporizador para el ID
+    if (this.temporizadoresSimon[jugador]) {
+        clearTimeout(this.temporizadoresSimon[jugador]);
+    }
+
+    if (index !== 0) { // Si no esta en primera posicion se setea el timeout
+        setSimonTimeout(jugador, 5)
+    }
+
     if (index === -1) { // No existe el simon en la cola, se crea
         this.colaInterna.push(req)
-        this.cancionesCola.push('Partida simon dice de ' + req.body.name)
-        return res.status(200).json({ status: 'inQueue', isNew: true })
+        this.cancionesCola.push(partidaString + jugador)
+        return res.status(200).json({ status: 'inQueue'})
     } else if (index !== 0) { // Existe la partida pero no esta en primera posicion, se devuelve en estado de cola
-        return res.status(200).json({ status: 'inQueue', isNew: false })
+        return res.status(200).json({ status: 'inQueue'})
     } else {
         return res.status(200).json({ status: 'running' })
     }
 })
 
+this.timeoutIncrement = 15
 app.post('/simon', (req, res) => {
-    var action = req.body.action
-    var secuenciaJugador = req.body.secuencia
-    var jugador = req.body.jugador
+    var { accion, secuenciaJugador = secuencia, jugador } = req.body
     var colorIndexRandom = Math.floor(Math.random() * 3); // random entre 0 y 3
-    var isSequenceCorrect
+    var esSecuenciaCorrecta
 
-    if (action === 'start') { // Accion que llega cuando llega a la web de los controles del simon dice
+    this.timeoutIncrement += 15
+    setSimonTimeout(jugador, this.timeoutIncrement)
+
+    if (accion === 'start') { // Accion que llega cuando llega a la web de los controles del simon dice
+        // Si tiene un nombre váldio y no existe una partida con ese mismo nombre se añade la petición a la cola
         this.secuenciaSimon.push(this.colors[colorIndexRandom])
-    } else if (action === 'select') { // Se captura la secuencia y se compara con la que hace simon
+    } else if (accion === 'select') { // Se captura la secuencia y se compara con la que hace simon
         if (this.secuenciaSimon === secuenciaJugador) {
-            isSequenceCorrect = true
+            esSecuenciaCorrecta = true
         } else {
-            isSequenceCorrect = false
+            esSecuenciaCorrecta = false
         }
     } else {
-        isSequenceCorrect = false
+        esSecuenciaCorrecta = false
     }
 
-    if (isSequenceCorrect === false) {
+    if (esSecuenciaCorrecta === false) {
         this.secuenciaSimon = []
+        this.timeoutIncrement = 15
         // Se guardan los datos como nombre de jugador y aciertos
         // Se ejecuta secuencia de error
     } else {
@@ -180,8 +202,18 @@ app.post('/simon', (req, res) => {
     }
 
     console.log("[simon dice]: " + this.secuenciaSimon)
-    return res.status(200).json({ isSequenceCorrect: isSequenceCorrect === false ? false : true })
+    return res.status(200).json({ esSecuenciaCorrecta: esSecuenciaCorrecta === false ? false : true })
 })
+
+function setSimonTimeout(jugador, segundos) {
+    this.temporizadoresSimon[jugador] = setTimeout(() => {
+        // Acción a realizar cuando se alcanza el timeout
+        console.log(`Timeout para persona ${jugador}, se cierra su partida porque ha pasado mas de 10 segundos sin recibir una llamada`);
+
+        this.colaInterna = this.colaInterna.filter(elem => elem.body.jugador !== jugador) // Eliminamos al jugador porque se ha desconectado
+        delete this.temporizadoresSimon[jugador]; // Eliminar el temporizador después de la acción
+    }, segundos * 1000); // segundos de timeout
+}
 
 app.post('/canciones', (req, res) => {
     let body = req.body
@@ -486,6 +518,17 @@ const renderSongsFromArray = songsNameArray => {
         })
 }
 
+function mapListByParam(list, params) {
+    let paramsSplitted = params.split('.')
+    if (paramsSplitted.length > 1) {
+      return mapListByParam(
+        list.map(elem => elem[paramsSplitted[0]]).filter(elem => elem !== undefined),
+        paramsSplitted.filter((value, index) => index !== 0).join('.')
+      )
+    } else {
+      return list.map(elem => elem[params[0]]).filter(elem => elem !== undefined)
+    }
+}
 
 app.listen(port, () => {
     axios.get(URL_GET_PLAYLIST_STEPS)

@@ -10,9 +10,6 @@ const SONGS_CONT = document.getElementById('canciones')
 const PLAYING_CONT = document.getElementById('sonando')
 const QUEUE_CONT = document.getElementById('cola')
 
-var linkComentarios = document.getElementById('link_comentarios')
-linkComentarios.setAttribute('href', linkComentarios.getAttribute('href').replace('$BASE_URL', BASE_URL('31500')))
-
 /* ******************************
     * DIV CANCIÓN SONANDO: '<div class="card p-2 m-2">' + name + '</div>'
     * DIV CANCIÓN SELECCIONABLE: '<div class="card p-2 m-2 seleccionable" onCLick="onSeleccionable(this)">' + name + '</div>'

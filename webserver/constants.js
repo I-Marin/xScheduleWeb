@@ -3,6 +3,7 @@ const BASE_URL = require("./baseUrl.js")
 const constants = {
     PLAYLIST_CANCIONES: `CANCIONES`,
     PLAYLIST_ANIMACIONES: `ANIMATIONS`,
+    PLAYLIST_SIMON: ``,
     URL_GET_QUEUED_STEPS: `http://${BASE_URL()}/xScheduleQuery?Query=GetQueuedSteps`,
     URL_GET_PLAYING_STATUS: `http://${BASE_URL()}/xScheduleQuery?Query=GetPlayingStatus`,
     URL_CLEAR_BACKGROUND: `http://${BASE_URL()}/xScheduleCommand?Command=Clear background playlist`,
