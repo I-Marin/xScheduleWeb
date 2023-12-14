@@ -332,37 +332,35 @@ app.post('/canciones', (req, res) => {
         this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
         encolarCancion(cancion)
     }
+})
+
+function encolarCancion(cancion) {
+    try {
+        // this.cancionesEnProceso = [] //this.cancionesEnProceso.filter(c => c != cancion)
+
+        let action1 = URL_ENQUEUE_SONG(cancion, PLAYLIST_CANCIONES)
+        axios.post(action1)
+            .then(() => {
+                console.log('Canción añadida a la cola: ' + cancion)
+            })
+            .catch(e => res.status(500).json({ response: 'No se ha podido añadir a la cola la canción: ' + e }))
+
+        // // Paro el background
+        // let action2 = URL_CLEAR_BACKGROUND
+        // axios.post(action2)
+        //     .then(() => console.log('Parado el background: ' + action2))
+        //     .catch(e => res.status(500).json({ response: 'No se han podido parar las animaciones: ' + e }))
 
 
-    function encolarCancion(cancion) {
-        try {
-            // this.cancionesEnProceso = [] //this.cancionesEnProceso.filter(c => c != cancion)
-
-            let action1 = URL_ENQUEUE_SONG(cancion, PLAYLIST_CANCIONES)
-            axios.post(action1)
-                .then(() => {
-                    console.log('Canción añadida a la cola: ' + cancion)
-                })
-                .catch(e => res.status(500).json({ response: 'No se ha podido añadir a la cola la canción: ' + e }))
-
-            // // Paro el background
-            // let action2 = URL_CLEAR_BACKGROUND
-            // axios.post(action2)
-            //     .then(() => console.log('Parado el background: ' + action2))
-            //     .catch(e => res.status(500).json({ response: 'No se han podido parar las animaciones: ' + e }))
-
-
-            // let action3 = URL_SET_VOLUME(50)
-            // axios.post(action3)
-            //     .then(() => console.log('Volumen al 50: ' + action3))
-            //     .catch(e => res.status(500).json({ response: 'No se ha podido modificar volumen: ' + e }))
-        } catch (error) {
-            console.log('Error encolando cancion : ' + error);
-        }
-
+        // let action3 = URL_SET_VOLUME(50)
+        // axios.post(action3)
+        //     .then(() => console.log('Volumen al 50: ' + action3))
+        //     .catch(e => res.status(500).json({ response: 'No se ha podido modificar volumen: ' + e }))
+    } catch (error) {
+        console.log('Error encolando cancion : ' + error);
     }
 
-})
+}
 
 app.get('/renderall', (req, res) => {
 
@@ -529,6 +527,18 @@ function mapListByParam(list, params) {
       return list.map(elem => elem[params[0]]).filter(elem => elem !== undefined)
     }
 }
+
+// Encolamos canciones cada 1 segundo por si se han quedado paradas
+setInterval(() => {
+    var elementoColaInterna = this.colaInterna.map(elem => elem.body.cancion)
+    // Encolamos solo hasta que nos encontremos un simon, que con el map el elemento se quedara en undefined
+    for (let elementoCola in elementoColaInterna) {
+        if (elementoCola === undefined) {
+            return
+        }
+        encolarCancion(elementoCola)
+    }
+}, 1000)
 
 app.listen(port, () => {
     axios.get(URL_GET_PLAYLIST_STEPS)
