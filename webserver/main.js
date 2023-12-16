@@ -530,14 +530,29 @@ function mapListByParam(list, params) {
 
 // Encolamos canciones cada 1 segundo por si se han quedado paradas
 setInterval(() => {
-    var elementoColaInterna = this.colaInterna.map(elem => elem.body.cancion)
-    // Encolamos solo hasta que nos encontremos un simon, que con el map el elemento se quedara en undefined
-    for (let elementoCola in elementoColaInterna) {
-        if (elementoCola === undefined) {
-            return
-        }
-        encolarCancion(elementoCola)
-    }
+    axios.get(URL_GET_QUEUED_STEPS)
+        .then(resData => {
+            axios.get(URL_GET_PLAYING_STATUS)
+                .then(resData2 => {
+
+                    var cancionSonando = resData2.data.step
+                    encolarCancion(elementoCola)
+
+                    var elementoColaInterna = this.colaInterna.map(elem => elem.body.cancion)
+                    // Encolamos solo hasta que nos encontremos un simon, que con el map el elemento se quedara en undefined
+                    for (let elementoCola in elementoColaInterna) {
+                        if (elementoCola === undefined && ) {
+                            return
+                        }
+                    }
+                
+                    //this.cancionesCola = resData.data.steps.map(step => step.name)
+                    this.cancionesSeleccionables = this.canciones.filter(can => !this.cancionesCola.includes(can))
+                    this.cancionesSeleccionables = this.cancionesSeleccionables.filter(can => !this.cancionesEnProceso.includes(can))
+                })
+                .catch(err => { console.log(err) })
+        })
+        .catch(err => { })
 }, 1000)
 
 app.listen(port, () => {
