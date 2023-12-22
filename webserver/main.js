@@ -529,10 +529,16 @@ function mapListByParam(list, params) {
 }
 
 // Encolamos canciones cada 1 segundo por si se han quedado paradas
-setInterval(() => {
-    var elementoColaInterna = this.colaInterna.map(elem => elem.body.cancion)
+setInterval(async () => {
+    var cancionesCola = this.cancionesCola
+
+    var colaXSchedule = await axios.get(URL_GET_QUEUED_STEPS)
+    colaXSchedule = colaXSchedule.data.steps.map(step => step.name)
+
+    cancionesCola.filter(elem => !colaXSchedule.includes(elem)) // Filtramos para que no nos meta canciones que ya estan encoladas
+
     // Encolamos solo hasta que nos encontremos un simon, que con el map el elemento se quedara en undefined
-    for (let elementoCola in elementoColaInterna) {
+    for (let elementoCola of cancionesCola) {
         if (elementoCola === undefined) {
             return
         }
