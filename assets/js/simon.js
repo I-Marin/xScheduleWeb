@@ -2,29 +2,39 @@ const simonDisponible = true // Si esta a true funciona la pagina normal, sino s
 
 const $botones = Array.from(document.getElementsByTagName('button'))
 const URL_SIMON_GET = (jugador, nuevaPartida) => `http://${BASE_URL('3000')}/simon?jugador=${jugador}&nuevaPartida=${nuevaPartida}`
+const URL_SIMON_POST = `http://${BASE_URL('3000')}/simon}`
 
 var estadoEnCola = ''
+var longitudSecuencia = 1
+var numeroSecuenciaActual = 1
+var start = true
 
 if (!simonDisponible) {
-    alert("Lo sentimos, el minijuego del simon dice no esta disponible en este momento")
+    alert("Lo sentimos, el minijuego del Simon Dice no esta disponible en este momento")
     location.href = 'index.html'; // redireccionamos a la pagina principal
 }
 
-var jugador = prompt('Bienvenido al simon dice, por favor, introduce tu nombre:')
+var jugador = prompt('Bienvenido al Simon Dice, por favor, introduce tu nombre:')
 desactivarBotones()
 
 getSimon(true)
-.then(data => { // Iniciamos la partida y comprobamos si tiene el mismo nombre que otro jugador
-    if (data.error) {
-        alert(data.error)
-        location.href = 'index.html'; // redireccionamos a la pagina principal
-    }
-}) 
+    .then(data => { // Iniciamos la partida y comprobamos si tiene el mismo nombre que otro jugador
+        if (data.error) {
+            alert(data.error)
+            location.href = 'index.html'; // redireccionamos a la pagina principal
+        }
+    })
 
 // Intervalo para sepamos si el usuario esta activo o no y su estado en la cola
 setInterval(async () => {
-    getSimon(false)
-}, 5000)
+    var { status } = getSimon(false)
+    estadoEnCola = status
+
+    if (start && estadoEnCola === 'running') {
+        activarBotones()
+        postSimon('start', '')
+    }
+}, 3000)
 
 async function getSimon(nuevaPartida) {
     var res = await fetch(URL_SIMON_GET(jugador, nuevaPartida))
@@ -34,6 +44,24 @@ async function getSimon(nuevaPartida) {
         console.error(data.error)
     }
     return data
+}
+
+function postSimon(accion, color) {
+    var url = URL_SIMON_POST,
+        params = {
+            method: 'POST',
+            mode: 'cors',
+            body: JSON.stringify({
+                accion: accion,
+                cancion: color
+            }),
+            headers: { 'Content-Type': 'application/json' },
+        }
+
+    var request = new Request(url, params)
+
+    fetch(request)
+        .catch(err => console.log(err))
 }
 
 function activarBotones() {

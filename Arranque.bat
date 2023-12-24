@@ -20,13 +20,17 @@ start "" "C:/Program Files/xLights/xSchedule.exe"
 
 :webServer
 cd C:/Program Files/xLights/xScheduleWeb
-for /f %%i in ('serverInitArrancado.bat') do (
+for /f %%i in ('NodeArrancado.bat') do (
     if /I "%%i" == "Open" goto :end
 )
 :: Aqui llega si el webServer no este iniciado
 echo webServer no esta abierto
 
-start "serverInit.exe" "C:/Program Files/xLights/xScheduleWeb/serverInit.bat"
+rem start "serverInit.exe" "C:/Program Files/xLights/xScheduleWeb/serverInit.bat"
+rem mato antes la ventana (habia veces que el puerto daba cerrado pero la ventana seguia abierta y al arrancar daba puerto ocupado)
+taskkill /t /f /fi "imagename eq cmd.exe" /fi "windowtitle eq c:\windows\system32\cmd.exe"
+rem start "Node" cmd node webserver/main.js
+start cmd /c node webserver/main.js
 
 :end
 timeout 5

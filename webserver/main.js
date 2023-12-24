@@ -10,6 +10,7 @@ const express = require('express'),
 const {
     PLAYLIST_CANCIONES,
     PLAYLIST_ANIMACIONES,
+    PLAYLIST_SIMON,
     URL_GET_QUEUED_STEPS,
     URL_GET_PLAYING_STATUS,
     URL_CLEAR_BACKGROUND,
@@ -135,17 +136,17 @@ app.get('/canciones', (req, res) => {
 })
 
 this.secuenciaSimon = []
-this.colors = ['rojo', 'verde', 'azul', 'amarillo']
+this.colors = ['simon_dice_rojo', 'simon_dice_verde', 'simon_dice_azul', 'simon_dice_amarillo']
 this.temporizadoresSimon = {}
 
 // EJEMPLOS EN CARPETA DE EJEMPLOS
 app.get('/simon', (req, res) => {
     var { jugador, nuevaPartida } = req.body
     var index = this.colaInterna.map(elem => elem.body.jugador).indexOf(jugador) // Buscamos el index en el que esta el simon del usuario
-      
+
     var partidaString = 'Partida simon dice de '
     if (index !== -1 && !nuevaPartida) {
-        return res.status(500).json({error: 'Ese nombre de jugador ya tiene una partida abierta, por favor seleccione otro nombre de usuario'})
+        return res.status(500).json({ error: 'Ese nombre de jugador ya tiene una partida abierta, por favor seleccione otro nombre de usuario' })
     }
 
     // Reiniciar o crear un nuevo temporizador para el ID
@@ -160,9 +161,9 @@ app.get('/simon', (req, res) => {
     if (index === -1) { // No existe el simon en la cola, se crea
         this.colaInterna.push(req)
         this.cancionesCola.push(partidaString + jugador)
-        return res.status(200).json({ status: 'inQueue'})
+        return res.status(200).json({ status: 'inQueue' })
     } else if (index !== 0) { // Existe la partida pero no esta en primera posicion, se devuelve en estado de cola
-        return res.status(200).json({ status: 'inQueue'})
+        return res.status(200).json({ status: 'inQueue' })
     } else {
         return res.status(200).json({ status: 'running' })
     }
@@ -192,17 +193,20 @@ app.post('/simon', (req, res) => {
 
     if (esSecuenciaCorrecta === false) {
         this.secuenciaSimon = []
-        this.timeoutIncrement = 15
         // Se guardan los datos como nombre de jugador y aciertos
         // Se ejecuta secuencia de error
     } else {
+        // Se ejecuta el ultimo color
+
+        // Se incrementa el timeout para que le de tiempo a responder
+        this.timeoutIncrement = 15
         // Se ejecuta secuencia de acierto
         this.secuenciaSimon.push(this.colors[colorIndexRandom])
         // Se ejecuta la secuencia con el nuevo color para la siguiente ronda
     }
 
     console.log("[simon dice]: " + this.secuenciaSimon)
-    return res.status(200).json({ esSecuenciaCorrecta: esSecuenciaCorrecta === false ? false : true })
+    return res.status(200).json({ esSecuenciaCorrecta: esSecuenciaCorrecta })
 })
 
 function setSimonTimeout(jugador, segundos) {
@@ -229,7 +233,7 @@ app.post('/canciones', (req, res) => {
     //     return res.status(100).json({ response: 'No se pueden añadir más canciones a la cola, hay que esperar a que termine alguna' })   
     // if (this.lengthms >= 5 * 60 * 1000)
     //     return res.status(500).json({ message: 'Ya hay mas de 5 minutos de canciones, hay que esperar a que termine alguna' })
-    
+
     this.cancionesCola.push(cancion) // Metemos la cancion en cola para que se muestre en la web
     if (this.cancionesCola.filter(elemCola => elemCola.includes('simon')).length > 0) {
         this.colaInterna.push(req) // Metemos el object de la peticion para hacerla cuando no haya simones en cola
@@ -239,7 +243,7 @@ app.post('/canciones', (req, res) => {
     this.cancionesEnProceso.push(cancion)
 
     let dedicatoria = body.dedicatoria != '' ? body.dedicatoria : undefined,
-        saveDirectory = 'C:/xLights/Show2022/secuencias/',
+        saveDirectory = 'C:/xLights/Show2023/secuencias/',
         fileName
     // Guardo el historico de canciones
     txt = saveDirectory + 'canciones.txt'
@@ -334,11 +338,12 @@ app.post('/canciones', (req, res) => {
     }
 })
 
-function encolarCancion(cancion) {
+function encolarCancion(cancion, esSimon) {
+    var playlist = !esSimon ? PLAYLIST_CANCIONES : PLAYLIST_SIMON
     try {
         // this.cancionesEnProceso = [] //this.cancionesEnProceso.filter(c => c != cancion)
 
-        let action1 = URL_ENQUEUE_SONG(cancion, PLAYLIST_CANCIONES)
+        let action1 = URL_ENQUEUE_SONG(cancion, playlist)
         axios.post(action1)
             .then(() => {
                 console.log('Canción añadida a la cola: ' + cancion)
@@ -440,6 +445,7 @@ app.post('/comentarios', (req, res) => {
 
 // Temporizador para poner ANIMACIONES
 function startBackground() {
+    //console.log('Background timer')
     axios.get(URL_GET_PLAYING_STATUS)
         .then(resData => {
             if (resData.data.status == 'idle') {
@@ -519,17 +525,17 @@ const renderSongsFromArray = songsNameArray => {
 function mapListByParam(list, params) {
     let paramsSplitted = params.split('.')
     if (paramsSplitted.length > 1) {
-      return mapListByParam(
-        list.map(elem => elem[paramsSplitted[0]]).filter(elem => elem !== undefined),
-        paramsSplitted.filter((value, index) => index !== 0).join('.')
-      )
+        return mapListByParam(
+            list.map(elem => elem[paramsSplitted[0]]).filter(elem => elem !== undefined),
+            paramsSplitted.filter((value, index) => index !== 0).join('.')
+        )
     } else {
-      return list.map(elem => elem[params[0]]).filter(elem => elem !== undefined)
+        return list.map(elem => elem[params[0]]).filter(elem => elem !== undefined)
     }
 }
 
 // Encolamos canciones cada 1 segundo por si se han quedado paradas
-setInterval(() => {
+/*setInterval(() => {
     axios.get(URL_GET_QUEUED_STEPS)
         .then(resData => {
             axios.get(URL_GET_PLAYING_STATUS)
@@ -541,7 +547,7 @@ setInterval(() => {
                     var elementoColaInterna = this.colaInterna.map(elem => elem.body.cancion)
                     // Encolamos solo hasta que nos encontremos un simon, que con el map el elemento se quedara en undefined
                     for (let elementoCola in elementoColaInterna) {
-                        if (elementoCola === undefined && ) {
+                        if (elementoCola === undefined ) {
                             return
                         }
                     }
@@ -553,7 +559,7 @@ setInterval(() => {
                 .catch(err => { console.log(err) })
         })
         .catch(err => { })
-}, 1000)
+}, 1000)*/
 
 app.listen(port, () => {
     axios.get(URL_GET_PLAYLIST_STEPS)
@@ -563,5 +569,5 @@ app.listen(port, () => {
     console.log(`Página de canciones: http://${BASE_URL()}/xScheduleWeb/index.html`)
     console.log(`Página de comentarios: http://${BASE_URL()}/xScheduleWeb/comentarios.html`)
 
-    setTimeout(startBackground, 15000, 'funky');
+    setInterval(startBackground, 15000, 'funky');
 })

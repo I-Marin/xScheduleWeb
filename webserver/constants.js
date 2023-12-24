@@ -16,7 +16,7 @@ const constants = {
     URL_SET_TEST_MODE_OFF: `http://${BASE_URL()}/xScheduleCommand?Command=Stop test mode`,
     URL_STOP_ALL: `http://${BASE_URL()}/xScheduleCommand?Command=Stop all now`,
     URL_SIGUIENTE: `http://${BASE_URL()}/xScheduleCommand?Command=Next step in current playlist`,
-    FILE_COMENTARIOS: `C:/xLights/Show2022/secuencias/comentarios.txt`,
+    FILE_COMENTARIOS: `C:/xLights/Show2023/secuencias/comentarios.txt`,
     SEPARADOR: `;\n`,
 }
 constants.URL_GET_PLAYLIST_STEPS = `http://${BASE_URL()}/xScheduleQuery?Query=GetPlayListSteps&Parameters=${constants.PLAYLIST_CANCIONES}`
