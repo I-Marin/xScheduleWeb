@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, user-scalable=no">
   <link href="css/bootstrap.min.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
   <title>Elige tu canción</title>
@@ -16,6 +17,7 @@
       background-size: 100%;
       font-family: 'Verdana';
       backdrop-filter: blur(3px);
+      background-color: green;
     }
 
     .titulo {
@@ -25,7 +27,7 @@
     }
 
     h3.titulo {
-      color: red;
+      color: yellow;
     }
 
     #cola {
@@ -91,14 +93,20 @@
       border-radius: 10px;
     }
 
-</style>
+    a {
+      color: blue;
+      text-decoration: underline;
+
+    }
+  </style>
+  <link rel="stylesheet" href="assets/css/snowflakes.style.css">
 
 </head>
 
 <body class="">
   <div class="container p-3">
     <h1 class="mb-5 text-white titulo">BIENVENIDO AL SHOW MUSICAL</h1>
-    <h3 class="titulo">¡Deja tu comentario sobre el show <a href="comentarios.html">aqui</a>!</h3>
+    <h3 class="titulo">Deja tu comentario <a href="comentarios.html">aqui</a></h3>
 
     <div id="sonando" class="p-3 bordes cont">
       <h3 class="mb-3 text-white">SONANDO</h3>
@@ -122,11 +130,11 @@
     </div>
 
     <div id="juegos" class="mt-3 p-3 bordes cont">
-      <h3 class="mb-3 text-white">JUEGUITOS (en matriz / pantalla)</h3>
+      <h3 class="mb-3 text-white">JUEGUITOS</h3>
 
       <div class="card p-2 m-2 seleccionable" onCLick="location.href='simon.html'">Simon dice</div>
-      <div class="card p-2 m-2 seleccionable" onCLick="openXyzzy()">Tetris</div>
-      <div class="card p-2 m-2 seleccionable" onCLick="openXyzzy2()">Snake</div>
+      <!-- <div class="card p-2 m-2 seleccionable" onCLick="openXyzzy()">Tetris</div>
+      <div class="card p-2 m-2 seleccionable" onCLick="openXyzzy2()">Snake</div> -->
     </div>
 
 
@@ -158,10 +166,41 @@
     </div>
   </div>
 
+  <div class="snowflake">
+    ❅
+  </div>
+  <div class="snowflake">
+    ❅
+  </div>
+  <div class="snowflake">
+    ❆
+  </div>
+  <div class="snowflake">
+    ❄
+  </div>
+  <div class="snowflake">
+    ❅
+  </div>
+  <div class="snowflake">
+    ❆
+  </div>
+  <div class="snowflake">
+    ❄
+  </div>
+  <div class="snowflake">
+    ❅
+  </div>
+  <div class="snowflake">
+    ❆
+  </div>
+  <div class="snowflake">
+    ❄
+  </div>
+
   <!-- <script src="assets/js/bootstrap.min.js"></script> -->
   <script src="assets/js/baseUrl.js"></script>
   <script src="assets/js/main.js"></script>
-
+  <!--
   <script src="js/assets/jquery.min.js"></script>
   <script src="js/assets/bootstrap.min.js"></script>
   <script src="js/assets/bootstrap-colorpicker.min.js"></script>
@@ -176,7 +215,8 @@
   <script src="js/webSocket.js"></script>
   <script src="js/xyzzy.js"></script>
   <script src="js/xyzzy2.js"></script>
-  <script src="js/sidebar.js"></script>
+  <script src="js/sidebar.js"></script> 
+  -->
 
 </body>
 

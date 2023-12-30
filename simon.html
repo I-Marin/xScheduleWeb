@@ -4,10 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, user-scalable=no">
   <style>
-    html, body {
+    html,
+    body {
       margin: 0;
     }
+
     html {
       padding: 2vh;
       height: 96vh;
@@ -72,10 +75,10 @@
 
 <body>
   <h1 id="msg">Espere su turno, por favor</h1>
-  <div class="grid-container" >
+  <div class="grid-container">
     <button class="button green" id="simon_dice_verde" onclick="seleccionarColor(this)"></button>
     <button class="button red" id="simon_dice_rojo" onclick="seleccionarColor(this)"></button>
-    <button class="button yellow"id="simon_dice_amarillo" onclick="seleccionarColor(this)"></button>
+    <button class="button yellow" id="simon_dice_amarillo" onclick="seleccionarColor(this)"></button>
     <button class="button blue" id="simon_dice_azul" onclick="seleccionarColor(this)"></button>
   </div>
   <script src="assets/js/baseUrl.js"></script>
