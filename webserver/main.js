@@ -30,15 +30,16 @@ const {
 
 const BASE_URL = require('./baseUrl')
 
+WEB_DATA = {}
 
-this.i = 0
-this.lengthms = 0
-this.canciones = []
-this.cancionesCola = []
-this.cancionesSeleccionables = []
-this.cancionesEnProceso = [] // Guarda las canciones pendientes de encolar. Para quitarlas de la lista de seleccionables mientras se procesan
-this.sonando = ''
-this.colaInterna = [] // Aqui se guardan las peticiones de las canciones y los simones dice con datos internos
+WEB_DATA.i = 0
+WEB_DATA.lengthms = 0
+WEB_DATA.canciones = []
+WEB_DATA.cancionesCola = []
+WEB_DATA.cancionesSeleccionables = []
+WEB_DATA.cancionesEnProceso = [] // Guarda las canciones pendientes de encolar. Para quitarlas de la lista de seleccionables mientras se procesan
+WEB_DATA.sonando = ''
+WEB_DATA.colaInterna = [] // Aqui se guardan las peticiones de las canciones y los simones dice con datos internos
 
 
 app.use(express.json())
@@ -96,171 +97,174 @@ app.get('/siguiente', (req, res) => {
 )
 
 app.get('/canciones', (req, res) => {
+    return res.json(
+        {
+            cancionesCola: WEB_DATA.cancionesColaParaWeb,
+            //                           cancionesCola: WEB_DATA.cancionesCola,
+            cancionesSinReproducir: WEB_DATA.cancionesSeleccionables,
+            cancionesEnProceso: WEB_DATA.cancionesEnProceso,
+            lengthms: WEB_DATA.lengthms,
+            sonando: WEB_DATA.sonando,
+            progreso: WEB_DATA.progreso
+        }
+    )
+
+
     axios.get(URL_GET_QUEUED_STEPS)
         .then(resData => {
             axios.get(URL_GET_PLAYING_STATUS)
                 .then(resData2 => {
                     if (resData2.data.status == 'idle') {
-                        this.sonando = ''
-                        this.progreso = 100
+                        WEB_DATA.sonando = ''
+                        WEB_DATA.progreso = 100
                     }
                     else {
-                        this.sonando = '    ' + resData2.data.step + ' ' + resData2.data.left.substring(0, resData2.data.left.indexOf('.', 0))
-                        this.progreso = ~~(resData2.data.positionms / resData2.data.lengthms * 100)
+                        WEB_DATA.sonando = '    ' + resData2.data.step + ' ' + resData2.data.left.substring(0, resData2.data.left.indexOf('.', 0))
+                        WEB_DATA.progreso = ~~(resData2.data.positionms / resData2.data.lengthms * 100)
                     }
-                    if (this.sonando.includes('simon_dice_')) {
-                        this.sonando = ''
-                        this.progreso = 0
+                    if (WEB_DATA.sonando.includes('simon_dice_')) {
+                        WEB_DATA.sonando = ''
+                        WEB_DATA.progreso = 0
                     }
 
 
-                    this.lengthms = 0
+                    WEB_DATA.lengthms = 0
                     resData.data.steps.forEach(element => {
-                        this.lengthms = this.lengthms + parseInt(element.lengthms)
+                        WEB_DATA.lengthms = WEB_DATA.lengthms + parseInt(element.lengthms)
                     });
 
-                    //this.cancionesCola = resData.data.steps.map(step => step.name)
-                    this.cancionesSeleccionables = this.canciones.filter(can => !this.cancionesCola.includes(can))
-                    this.cancionesSeleccionables = this.cancionesSeleccionables.filter(can => !this.cancionesEnProceso.includes(can))
-                    this.cancionesCola = this.cancionesCola.filter(can => !(can == resData2.data.step))
+                    //WEB_DATA.cancionesCola = resData.data.steps.map(step => step.name)
+                    WEB_DATA.cancionesSeleccionables = WEB_DATA.canciones.filter(can => !WEB_DATA.cancionesCola.includes(can))
+                    WEB_DATA.cancionesSeleccionables = WEB_DATA.cancionesSeleccionables.filter(can => !WEB_DATA.cancionesEnProceso.includes(can))
+                    WEB_DATA.cancionesCola = WEB_DATA.cancionesCola.filter(can => !(can == resData2.data.step))
 
-                    let cancionesColaParaWeb = Array.from(this.cancionesCola)
-                    if (this.cancionesCola.length > 0) {
-                        if (this.cancionesCola[0].includes("Simon dice ") && this.sonando == '') {
+                    WEB_DATA.cancionesColaParaWeb = Array.from(WEB_DATA.cancionesCola)
+                    if (WEB_DATA.cancionesCola.length > 0) {
+                        if (WEB_DATA.cancionesCola[0].includes("Simon dice ") && WEB_DATA.sonando == '') {
                             // Hay un simon dice jugando
-                            this.sonando = this.cancionesCola[0]
-                            this.progreso = 0
+                            WEB_DATA.sonando = WEB_DATA.cancionesCola[0]
+                            WEB_DATA.progreso = 0
                             cancionesColaParaWeb.shift()
                         }
                     }
 
-                    res.json(
-                        {
-                            cancionesCola: cancionesColaParaWeb,
-                            //                           cancionesCola: this.cancionesCola,
-                            cancionesSinReproducir: this.cancionesSeleccionables,
-                            cancionesEnProceso: this.cancionesEnProceso,
-                            lengthms: this.lengthms,
-                            sonando: this.sonando,
-                            progreso: this.progreso
-                        }
-                    )
+
                 })
                 .catch(err => { console.log(err) })
         })
         .catch(err => { })
 })
 
-this.secuenciaSimon = []
-this.secuenciaJugador = []
-this.colors = ['simon_dice_verde', 'simon_dice_rojo', 'simon_dice_amarillo', 'simon_dice_azul', 'simon_dice_ok', 'simon_dice_error']
-this.temporizadoresSimon = {}
-this.postSimonTimeout = {}
+WEB_DATA.secuenciaSimon = []
+WEB_DATA.secuenciaJugador = []
+WEB_DATA.colors = ['simon_dice_verde', 'simon_dice_rojo', 'simon_dice_amarillo', 'simon_dice_azul', 'simon_dice_ok', 'simon_dice_error']
+WEB_DATA.temporizadoresSimon = {}
+WEB_DATA.postSimonTimeout = {}
 
 // EJEMPLOS EN CARPETA DE EJEMPLOS
 app.get('/simon', (req, res) => {
     var { jugador, nuevaPartida } = req.query
     var partidaString = 'Simon dice ' + jugador
-    var index = this.cancionesCola.indexOf(partidaString) // Buscamos el index en el que esta el simon del usuario
+    var index = WEB_DATA.cancionesCola.indexOf(partidaString) // Buscamos el index en el que esta el simon del usuario
 
     if (index !== -1 && nuevaPartida === "true") {
         return res.status(500).json({ error: 'Ese nombre de jugador ya tiene una partida abierta, por favor seleccione otro nombre de usuario' })
     }
 
     if (index === -1 && nuevaPartida === "true") { // No existe el simon en la cola, se crea
-        this.colaInterna.push(req)
-        this.cancionesCola.push(partidaString)
+        WEB_DATA.colaInterna.push(req)
+        WEB_DATA.cancionesCola.push(partidaString)
         // Reiniciar o crear un nuevo temporizador para el ID
-        this.setSimonTimer(jugador, 5)
+        setSimonTimer(jugador, 5)
         return res.status(200).json({ status: 'inQueue' })
-    } else if (index === -1 || this.postSimonTimeout[jugador]) {
-        delete this.postSimonTimeout[jugador]
+    } else if (index === -1 || WEB_DATA.postSimonTimeout[jugador]) {
+        delete WEB_DATA.postSimonTimeout[jugador]
         return res.status(200).json({ status: 'quit' })
     }
-    else if (index === 0 && (this.sonando.length == 0 || this.sonando == partidaString)) { // Si esta en primera posicion y no hay nada sonando
+    else if (index === 0 && (WEB_DATA.sonando.length == 0 || WEB_DATA.sonando == partidaString)) { // Si esta en primera posicion y no hay nada sonando
         return res.status(200).json({ status: 'running' })
     } else {
         // Reiniciar o crear un nuevo temporizador para el ID
-        this.setSimonTimer(jugador, 5)
+        setSimonTimer(jugador, 5)
         return res.status(200).json({ status: 'inQueue' })
     }
 
 
 })
 
-this.timeoutIncrement = 0
+WEB_DATA.timeoutIncrement = 0
 app.post('/simon', (req, res) => {
     var { accion, color, jugador } = req.body
     var colorIndexRandom = Math.floor(Math.random() * 3.999999); // random entre 0 y 3
     var esSecuenciaCorrecta = true
     let saveDirectory = 'C:/xLights/Show2023/secuencias/simon_dice/'
 
-    if (this.cancionesCola.indexOf("Simon dice " + jugador) !== 0) {
+    if (WEB_DATA.cancionesCola.indexOf("Simon dice " + jugador) !== 0) {
         return
     }
 
-    this.timeoutIncrement = 5
-    this.setSimonTimer(jugador, this.timeoutIncrement, true)
+    WEB_DATA.timeoutIncrement = 5
+    setSimonTimer(jugador, WEB_DATA.timeoutIncrement, true)
 
     if (accion === 'start') { // Accion que llega cuando llega a la web de los controles del simon dice
         // Si tiene un nombre váldio y no existe una partida con ese mismo nombre se añade la petición a la cola
-        this.secuenciaSimon = []
-        this.secuenciaJugador = []
-        this.secuenciaSimon.push(this.colors[colorIndexRandom])
-        console.log("[simon dice]: " + this.secuenciaSimon)
+        WEB_DATA.secuenciaSimon = []
+        WEB_DATA.secuenciaJugador = []
+        WEB_DATA.secuenciaSimon.push(WEB_DATA.colors[colorIndexRandom])
+        console.log("[simon dice]: " + WEB_DATA.secuenciaSimon)
         encolarCancion('simon_dice_inicio', true)
         // encolamos la primera
-        for (let i = 0; i < this.secuenciaSimon.length; i++) {
-            let cancion = this.secuenciaSimon[i] + '_' + (i + 1)
+        for (let i = 0; i < WEB_DATA.secuenciaSimon.length; i++) {
+            let cancion = WEB_DATA.secuenciaSimon[i] + '_' + (i + 1)
             encolarCancion(cancion, true)
         }
     } else if (accion === 'select') { // Se captura la secuencia y se compara con la que hace simon
-        this.secuenciaJugador.push(color)
-        for (let i = 0; i < this.secuenciaJugador.length; i++) {
-            if (this.secuenciaJugador[i] !== this.secuenciaSimon[i]) {
+        WEB_DATA.secuenciaJugador.push(color)
+        for (let i = 0; i < WEB_DATA.secuenciaJugador.length; i++) {
+            if (WEB_DATA.secuenciaJugador[i] !== WEB_DATA.secuenciaSimon[i]) {
                 esSecuenciaCorrecta = false
                 break
             }
         }
 
         if (esSecuenciaCorrecta === false) {
-            this.secuenciaSimon = []
+            WEB_DATA.secuenciaSimon = []
             console.log("[simon dice] Secuencia fallada " + jugador)
 
             // Grabo el log de puntuacion
             txt = saveDirectory + 'simon_dice.txt'
             let now = new Date();
-            let logg = this.secuenciaJugador.length - 1
+            let logg = WEB_DATA.secuenciaJugador.length - 1
             fs.appendFileSync(txt, now + ' ' + logg + ' aciertos ' + ' ' + jugador + '\n')
 
             // TODO: Guardar record
 
-            this.setSimonTimer(jugador, 0, true)
+            setSimonTimer(jugador, 0, true)
 
             // Se ejecuta secuencia de error
             encolarCancion('simon_dice_error', true)
 
         } else {
-            console.log("[" + jugador + " dice]: " + this.secuenciaJugador)
+            console.log("[" + jugador + " dice]: " + WEB_DATA.secuenciaJugador)
             // Se ejecuta el color seleccionado por el jugador
-            let cancionJ = color + '_' + (this.secuenciaJugador.length + 2)
+            let cancionJ = color + '_' + (WEB_DATA.secuenciaJugador.length + 2)
             encolarCancion(cancionJ, true)
 
-            if (this.secuenciaJugador.length === this.secuenciaSimon.length) {
+            if (WEB_DATA.secuenciaJugador.length === WEB_DATA.secuenciaSimon.length) {
                 // Secuencia entera correcta
-                this.secuenciaJugador = []
-                this.secuenciaSimon.push(this.colors[colorIndexRandom])
-                console.log("[simon dice]: " + this.secuenciaSimon)
+                WEB_DATA.secuenciaJugador = []
+                WEB_DATA.secuenciaSimon.push(WEB_DATA.colors[colorIndexRandom])
+                console.log("[simon dice]: " + WEB_DATA.secuenciaSimon)
                 // Se ejecuta la secuencia de OK
                 encolarCancion('simon_dice_ok', true)
 
                 // se ejecuta la secuencia de colores entera
-                for (let i = 0; i < this.secuenciaSimon.length; i++) {
-                    let cancion = this.secuenciaSimon[i] + '_' + (i + 1)
+                for (let i = 0; i < WEB_DATA.secuenciaSimon.length; i++) {
+                    let cancion = WEB_DATA.secuenciaSimon[i] + '_' + (i + 1)
                     encolarCancion(cancion, true)
                 }
-                this.timeoutIncrement = 10 + 1 * (this.secuenciaSimon.length + 1)
-                this.setSimonTimer(jugador, this.timeoutIncrement, true)
+                WEB_DATA.timeoutIncrement = 10 + 1 * (WEB_DATA.secuenciaSimon.length + 1)
+                setSimonTimer(jugador, WEB_DATA.timeoutIncrement, true)
 
             } else { // Secuencia acertada pero no completa
                 // Esperando pulsacion del jugador
@@ -272,24 +276,34 @@ app.post('/simon', (req, res) => {
     }
 
 
-    return res.status(200).json({ esSecuenciaCorrecta: esSecuenciaCorrecta, cantidadColores: this.secuenciaSimon.length })
+    return res.status(200).json({ esSecuenciaCorrecta: esSecuenciaCorrecta, cantidadColores: WEB_DATA.secuenciaSimon.length })
 })
 
 
-this.setSimonTimer = function (jugador, segundos, post) {
-    clearTimeout(this.temporizadoresSimon[jugador]);
-    this.temporizadoresSimon[jugador] = setTimeout(() => {
+function setSimonTimer(jugador, segundos, post) {
+    clearTimeout(WEB_DATA.temporizadoresSimon[jugador]);
+    WEB_DATA.temporizadoresSimon[jugador] = setTimeout(() => {
         // Acción a realizar cuando se alcanza el timeout
         console.log(`Timeout para persona ${jugador}, se cierra su partida porque ha pasado mas de ${segundos} segundos sin recibir una llamada`);
 
-        this.colaInterna = this.colaInterna.filter(elem => elem.body.jugador !== jugador) // Eliminamos al jugador porque se ha desconectado
-        this.cancionesCola = this.cancionesCola.filter(elem => elem !== 'Simon dice ' + jugador)
+        WEB_DATA.colaInterna = WEB_DATA.colaInterna.filter(elem => elem.query.jugador !== jugador) // Eliminamos al jugador porque se ha desconectado
+        WEB_DATA.cancionesCola = WEB_DATA.cancionesCola.filter(elem => elem !== 'Simon dice ' + jugador)
         if (post) {
-            this.postSimonTimeout[jugador] = true
+            WEB_DATA.postSimonTimeout[jugador] = true
         }
-        this.timeoutIncrement = 0
-        delete this.temporizadoresSimon[jugador]
+        WEB_DATA.timeoutIncrement = 0
+        delete WEB_DATA.temporizadoresSimon[jugador]
+        
         //TODO: Encolar todas las peticiones hasta el siguiente simon dice
+        let reqEncolar 
+        while ( WEB_DATA.colaInterna.length > 0 && WEB_DATA.colaInterna[0].body.cancion){
+            reqEncolar =  WEB_DATA.colaInterna.shift()
+            encolarCancionDedicatoriaPost(reqEncolar)
+            
+        }
+     
+
+
     }, segundos * 1000); // segundos de timeout
 }
 
@@ -301,20 +315,28 @@ app.post('/canciones', (req, res) => {
     // if (ahora.getHours() < 18 || (ahora.getHours() == 18 && ahora.getMinutes() < 30) || (ahora.getHours() == 21 && ahora.getMinutes() > 30) || ahora.getHours() >= 22) {
     //     return res.status(500).json({ response: 'Solo se puede seleccionar canciones de 18:30 a 21:30, ¡Vente a esas horas y disfruta del espectáculo! ;)' })
     // }
-    if (!this.canciones.includes(cancion))
-        return res.status(500).json({ response: 'La canción no se encuentra en la playlist' })
-    // if (this.cancionesCola.length >= CANCIONES_max)
+    // if (WEB_DATA.cancionesCola.length >= CANCIONES_max)
     //     return res.status(100).json({ response: 'No se pueden añadir más canciones a la cola, hay que esperar a que termine alguna' })   
-    // if (this.lengthms >= 5 * 60 * 1000)
+    // if (WEB_DATA.lengthms >= 5 * 60 * 1000)
     //     return res.status(500).json({ message: 'Ya hay mas de 5 minutos de canciones, hay que esperar a que termine alguna' })
 
-    this.cancionesCola.push(cancion) // Metemos la cancion en cola para que se muestre en la web
-    if (this.cancionesCola.filter(elemCola => elemCola.includes('Simon dice ')).length > 0) {
-        this.colaInterna.push(req) // Metemos el object de la peticion para hacerla cuando no haya simones en cola
+    WEB_DATA.cancionesCola.push(cancion) // Metemos la cancion en cola para que se muestre en la web
+    if (WEB_DATA.cancionesCola.filter(elemCola => elemCola.includes('Simon dice ')).length > 0) {
+        WEB_DATA.colaInterna.push(req) // Metemos el object de la peticion para hacerla cuando no haya simones en cola
         return
     }
 
-    this.cancionesEnProceso.push(cancion)
+    encolarCancionDedicatoriaPost(req)
+})
+
+function encolarCancionDedicatoriaPost(req) {
+    let body = req.body
+    let cancion = body.cancion
+
+    if (!WEB_DATA.canciones.includes(cancion))
+        return res.status(500).json({ response: 'La canción no se encuentra en la playlist' })
+    
+    WEB_DATA.cancionesEnProceso.push(cancion)
 
     let dedicatoria = body.dedicatoria != '' ? body.dedicatoria : undefined,
         saveDirectory = 'C:/xLights/Show2023/secuencias/',
@@ -325,10 +347,10 @@ app.post('/canciones', (req, res) => {
     fs.appendFileSync(txt, now + ' ' + cancion + '\n')
 
     if (dedicatoria) {
-        if (this.i >= decicatorias_max)
-            this.i = 0
+        if (WEB_DATA.i >= decicatorias_max)
+            WEB_DATA.i = 0
 
-        fileName = `dedicatoria${++this.i}`
+        fileName = `dedicatoria${++WEB_DATA.i}`
         let seq = 'secuencias/' + fileName + '.xsq'
         let mp3 = saveDirectory + fileName + '.mp3'
         let txt = saveDirectory + fileName + '.txt'
@@ -364,36 +386,37 @@ app.post('/canciones', (req, res) => {
                                                 axios.post(action5)
                                                     .then(() => {
                                                         console.log('Dedicatoria añadida: ' + dedicatoria)
-                                                        this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+                                                        WEB_DATA.cancionesCola.push(cancion) 
+                                                        WEB_DATA.cancionesEnProceso = WEB_DATA.cancionesEnProceso.filter(c => c != cancion)
                                                         encolarCancion(cancion)
                                                     }) //then5
                                                     .catch(e => {
                                                         console.log('No se ha podido añadir la secuencia\n' + ':\n ' + e)
-                                                        this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+                                                        WEB_DATA.cancionesEnProceso = WEB_DATA.cancionesEnProceso.filter(c => c != cancion)
                                                         encolarCancion(cancion)
                                                     }) //catch5
                                             }) //then4
                                             .catch(e => {
                                                 console.log('Error ' + action4 + ':\n ' + e + '\n\n')
-                                                this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+                                                WEB_DATA.cancionesEnProceso = WEB_DATA.cancionesEnProceso.filter(c => c != cancion)
                                                 encolarCancion(cancion)
                                             }) //catch4
                                     }) //then3
                                     .catch(e => {
                                         console.log('Error ' + action3 + ':\n ' + e + '\n\n')
-                                        this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+                                        WEB_DATA.cancionesEnProceso = WEB_DATA.cancionesEnProceso.filter(c => c != cancion)
                                         encolarCancion(cancion)
                                     }) //catch3
                             }) //then2
                             .catch(e => {
                                 console.log('Error ' + action2 + ':\n ' + e + '\n\n')
-                                this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+                                WEB_DATA.cancionesEnProceso = WEB_DATA.cancionesEnProceso.filter(c => c != cancion)
                                 encolarCancion(cancion)
                             }) //catch2
                     }) //then1
                     .catch(e => {
                         console.log('Error ' + action1 + ':\n ' + e + '\n\n')
-                        this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+                        WEB_DATA.cancionesEnProceso = WEB_DATA.cancionesEnProceso.filter(c => c != cancion)
                         encolarCancion(cancion)
                     }) //catch1
             }); // gTTS de la dedicatoria
@@ -407,15 +430,15 @@ app.post('/canciones', (req, res) => {
 
 
     } else { // No hay dedicatoria
-        this.cancionesEnProceso = this.cancionesEnProceso.filter(c => c != cancion)
+        WEB_DATA.cancionesEnProceso = WEB_DATA.cancionesEnProceso.filter(c => c != cancion)
         encolarCancion(cancion)
     }
-})
+}
 
 function encolarCancion(cancion, esSimon) {
     var playlist = !esSimon ? PLAYLIST_CANCIONES : PLAYLIST_SIMON
     try {
-        // this.cancionesEnProceso = [] //this.cancionesEnProceso.filter(c => c != cancion)
+        // WEB_DATA.cancionesEnProceso = [] //WEB_DATA.cancionesEnProceso.filter(c => c != cancion)
 
         let action1 = URL_ENQUEUE_SONG(cancion, playlist)
         if (esSimon != true) {
@@ -527,20 +550,71 @@ app.post('/comentarios', (req, res) => {
 // Temporizador para poner ANIMACIONES
 function startBackground() {
     //console.log('Background timer')
-    axios.get(URL_GET_PLAYING_STATUS)
-        .then(resData => {
-            if (resData.data.status == 'idle' && this.secuenciaSimon.length === 0) {
-                // Pongo las animaciones
-                let action = URL_SET_BACKGROUND(PLAYLIST_ANIMACIONES)
-                axios.post(action)
-                    .then(() => { })
-                    .catch(e => res.status(500).json({ response: 'No se han podido parar las animaciones: ' + e }))
-            }
 
-        })
-        .catch(err => { console.log(err) })
+
+    // Busco el estado del Scheduler
+    axios.get(URL_GET_PLAYING_STATUS)
+    .then(resData => {
+        if (resData.data.status == 'idle' && WEB_DATA.secuenciaSimon.length <= 0) {
+            // Pongo las animaciones
+            let action = URL_SET_BACKGROUND(PLAYLIST_ANIMACIONES)
+            axios.post(action)
+                .then(() => { })
+                .catch(e => res.status(500).json({ response: 'No se han podido parar las animaciones: ' + e }))
+        }
+
+    })
+    .catch(err => { console.log(err) })
+
 }
 
+
+// Temporizador para ver cancion sonando, y modificar colas
+function procesaColas() {
+
+    axios.get(URL_GET_QUEUED_STEPS)
+        .then(resData => {
+            axios.get(URL_GET_PLAYING_STATUS)
+                .then(resData2 => {
+                    if (resData2.data.status == 'idle') {
+                        WEB_DATA.sonando = ''
+                        WEB_DATA.progreso = 100
+                    }
+                    else {
+                        WEB_DATA.sonando = '    ' + resData2.data.step + ' ' + resData2.data.left.substring(0, resData2.data.left.indexOf('.', 0))
+                        WEB_DATA.progreso = ~~(resData2.data.positionms / resData2.data.lengthms * 100)
+                    }
+                    if (WEB_DATA.sonando.includes('simon_dice_')) {
+                        WEB_DATA.sonando = ''
+                        WEB_DATA.progreso = 0
+                    }
+
+
+                    WEB_DATA.lengthms = 0
+                    resData.data.steps.forEach(element => {
+                        WEB_DATA.lengthms = WEB_DATA.lengthms + parseInt(element.lengthms)
+                    });
+
+                    //WEB_DATA.cancionesCola = resData.data.steps.map(step => step.name)
+                    WEB_DATA.cancionesSeleccionables = WEB_DATA.canciones.filter(can => !WEB_DATA.cancionesCola.includes(can))
+                    WEB_DATA.cancionesSeleccionables = WEB_DATA.cancionesSeleccionables.filter(can => !WEB_DATA.cancionesEnProceso.includes(can))
+                    WEB_DATA.cancionesCola = WEB_DATA.cancionesCola.filter(can => !(can == resData2.data.step))
+
+                    WEB_DATA.cancionesColaParaWeb = Array.from(WEB_DATA.cancionesCola)
+                    if (WEB_DATA.cancionesCola.length > 0) {
+                        if (WEB_DATA.cancionesCola[0].includes("Simon dice ") && WEB_DATA.sonando == '') {
+                            // Hay un simon dice jugando
+                            WEB_DATA.sonando = WEB_DATA.cancionesCola[0]
+                            WEB_DATA.progreso = 0
+                            cancionesColaParaWeb.shift()
+                        }
+                    }
+                })
+                .catch(err => { console.log(err) })
+        })
+        .catch(err => { })
+
+}
 
 function renderizarCancion(cancion) {
     let action1 = URL_XLIGTHS_COMMAND('openSequence' + '?force=False&seq=' + cancion)
@@ -625,7 +699,7 @@ function mapListByParam(list, params) {
                     var cancionSonando = resData2.data.step
                     encolarCancion(elementoCola)
 
-                    var elementoColaInterna = this.colaInterna.map(elem => elem.body.cancion)
+                    var elementoColaInterna = WEB_DATA.colaInterna.map(elem => elem.body.cancion)
                     // Encolamos solo hasta que nos encontremos un simon, que con el map el elemento se quedara en undefined
                     for (let elementoCola in elementoColaInterna) {
                         if (elementoCola === undefined ) {
@@ -633,9 +707,9 @@ function mapListByParam(list, params) {
                         }
                     }
                 
-                    //this.cancionesCola = resData.data.steps.map(step => step.name)
-                    this.cancionesSeleccionables = this.canciones.filter(can => !this.cancionesCola.includes(can))
-                    this.cancionesSeleccionables = this.cancionesSeleccionables.filter(can => !this.cancionesEnProceso.includes(can))
+                    //WEB_DATA.cancionesCola = resData.data.steps.map(step => step.name)
+                    WEB_DATA.cancionesSeleccionables = WEB_DATA.canciones.filter(can => !WEB_DATA.cancionesCola.includes(can))
+                    WEB_DATA.cancionesSeleccionables = WEB_DATA.cancionesSeleccionables.filter(can => !WEB_DATA.cancionesEnProceso.includes(can))
                 })
                 .catch(err => { console.log(err) })
         })
@@ -644,11 +718,12 @@ function mapListByParam(list, params) {
 
 app.listen(port, () => {
     axios.get(URL_GET_PLAYLIST_STEPS)
-        .then(res => this.canciones = res.data.steps.map(step => step.name))
+        .then(res => WEB_DATA.canciones = res.data.steps.map(step => step.name))
         .catch(err => console.log(err))
     console.log(`Marin Falcon app listening on http://${BASE_URL(port)}`)
     console.log(`Página de canciones: http://${BASE_URL()}/xScheduleWeb/index.html`)
     console.log(`Página de comentarios: http://${BASE_URL()}/xScheduleWeb/comentarios.html`)
 
-    setInterval(startBackground, 15000, 'funky');
+    setInterval(startBackground, 5000, 'funky');    
+    setInterval(procesaColas, 500, 'funky2');
 })
