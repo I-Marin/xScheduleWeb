@@ -108,6 +108,11 @@ app.get('/canciones', (req, res) => {
                         this.sonando = '    ' + resData2.data.step + ' ' + resData2.data.left.substring(0, resData2.data.left.indexOf('.', 0))
                         this.progreso = ~~(resData2.data.positionms / resData2.data.lengthms * 100)
                     }
+                    if (this.sonando.includes('simon_dice_')){
+                        this.sonando = ''
+                        this.progreso = 0
+                    }
+
 
                     this.lengthms = 0
                     resData.data.steps.forEach(element => {
@@ -119,9 +124,20 @@ app.get('/canciones', (req, res) => {
                     this.cancionesSeleccionables = this.cancionesSeleccionables.filter(can => !this.cancionesEnProceso.includes(can))
                     this.cancionesCola = this.cancionesCola.filter(can => !(can == resData2.data.step))
 
+                    let cancionesColaParaWeb = Array.from(this.cancionesCola)
+                    if (this.cancionesCola.length > 0 ) {
+                        if (this.cancionesCola[0].includes("Simon dice ")  && this.sonando == '') {
+                            // Hay un simon dice jugando
+                            this.sonando = this.cancionesCola[0]
+                            this.progreso = 0
+                            cancionesColaParaWeb.shift()
+                        }
+                        }
+
                     res.json(
                         {
-                            cancionesCola: this.cancionesCola,
+                            cancionesCola: cancionesColaParaWeb,
+ //                           cancionesCola: this.cancionesCola,
                             cancionesSinReproducir: this.cancionesSeleccionables,
                             cancionesEnProceso: this.cancionesEnProceso,
                             lengthms: this.lengthms,
@@ -136,86 +152,140 @@ app.get('/canciones', (req, res) => {
 })
 
 this.secuenciaSimon = []
-this.colors = ['simon_dice_rojo', 'simon_dice_verde', 'simon_dice_azul', 'simon_dice_amarillo']
+this.secuenciaJugador = []
+this.colors = ['simon_dice_verde', 'simon_dice_rojo',  'simon_dice_amarillo', 'simon_dice_azul','simon_dice_ok','simon_dice_error']
 this.temporizadoresSimon = {}
+this.postSimonTimeout = {}
 
 // EJEMPLOS EN CARPETA DE EJEMPLOS
 app.get('/simon', (req, res) => {
-    var { jugador, nuevaPartida } = req.body
-    var index = this.colaInterna.map(elem => elem.body.jugador).indexOf(jugador) // Buscamos el index en el que esta el simon del usuario
+    var { jugador, nuevaPartida } = req.query
+    var partidaString = 'Simon dice ' + jugador
+    var index = this.cancionesCola.indexOf(partidaString) // Buscamos el index en el que esta el simon del usuario
 
-    var partidaString = 'Partida simon dice de '
-    if (index !== -1 && !nuevaPartida) {
-        return res.status(500).json({ error: 'Ese nombre de jugador ya tiene una partida abierta, por favor seleccione otro nombre de usuario' })
+    if (index !== -1 && nuevaPartida === "true") {
+        return res. status(500).json({ error: 'Ese nombre de jugador ya tiene una partida abierta, por favor seleccione otro nombre de usuario' })
     }
 
-    // Reiniciar o crear un nuevo temporizador para el ID
-    if (this.temporizadoresSimon[jugador]) {
-        clearTimeout(this.temporizadoresSimon[jugador]);
-    }
-
-    if (index !== 0) { // Si no esta en primera posicion se setea el timeout
-        setSimonTimeout(jugador, 5)
-    }
-
-    if (index === -1) { // No existe el simon en la cola, se crea
+    if (index === -1 && nuevaPartida === "true") { // No existe el simon en la cola, se crea
         this.colaInterna.push(req)
-        this.cancionesCola.push(partidaString + jugador)
+        this.cancionesCola.push(partidaString)
+        // Reiniciar o crear un nuevo temporizador para el ID
+        this.setSimonTimer(jugador, 5)
         return res.status(200).json({ status: 'inQueue' })
-    } else if (index !== 0) { // Existe la partida pero no esta en primera posicion, se devuelve en estado de cola
-        return res.status(200).json({ status: 'inQueue' })
-    } else {
-        return res.status(200).json({ status: 'running' })
+    } else if (index === -1  || this.postSimonTimeout[jugador]) {
+        delete this.postSimonTimeout[jugador]
+        return res.status(200).json({ status: 'quit' })
     }
+    else if (index === 0 && (this.sonando.length == 0 || this.sonando == partidaString)) { // Si esta en primera posicion y no hay nada sonando
+        return res.status(200).json({ status: 'running' })
+    } else {
+        // Reiniciar o crear un nuevo temporizador para el ID
+        this.setSimonTimer(jugador, 5)
+        return res.status(200).json({ status: 'inQueue' })
+    }
+
+     
 })
 
-this.timeoutIncrement = 15
+this.timeoutIncrement = 0
 app.post('/simon', (req, res) => {
-    var { accion, secuenciaJugador = secuencia, jugador } = req.body
+    var { accion, color , jugador } = req.body
     var colorIndexRandom = Math.floor(Math.random() * 3); // random entre 0 y 3
-    var esSecuenciaCorrecta
+    var esSecuenciaCorrecta = true
+    let saveDirectory = 'C:/xLights/Show2023/secuencias/simon_dice/'
 
-    this.timeoutIncrement += 15
-    setSimonTimeout(jugador, this.timeoutIncrement)
+    if (this.cancionesCola.indexOf("Simon dice "  + jugador) !== 0) {
+        return
+    }
+
+    this.timeoutIncrement = 10
+    this.setSimonTimer(jugador, this.timeoutIncrement, true)
 
     if (accion === 'start') { // Accion que llega cuando llega a la web de los controles del simon dice
         // Si tiene un nombre váldio y no existe una partida con ese mismo nombre se añade la petición a la cola
+        this.secuenciaSimon  = []
+        this.secuenciaJugador = []
         this.secuenciaSimon.push(this.colors[colorIndexRandom])
+        console.log("[simon dice]: " + this.secuenciaSimon)
+        // encolamos la primera
+        for (let i = 0; i < this.secuenciaSimon.length; i++) {
+            let cancion = this.secuenciaSimon[i]+'_'+ (i+1) 
+            encolarCancion(cancion, true)
+        }
     } else if (accion === 'select') { // Se captura la secuencia y se compara con la que hace simon
-        if (this.secuenciaSimon === secuenciaJugador) {
-            esSecuenciaCorrecta = true
+        this.secuenciaJugador.push(color)
+        for (let i = 0; i < this.secuenciaJugador.length; i++) {
+            if (this.secuenciaJugador[i] !== this.secuenciaSimon[i]) {
+                esSecuenciaCorrecta = false
+                break
+            }
+        }
+ 
+        if (esSecuenciaCorrecta === false) {
+            this.secuenciaSimon = []
+            console.log("[simon dice] Secuencia fallada " + jugador)
+
+            // Grabo el log de puntuacion
+            txt = saveDirectory + 'simon_dice.txt'
+            let now = new Date();
+            let logg = this.secuenciaJugador.length - 1
+            fs.appendFileSync(txt, now + ' ' + logg + ' aciertos '   + ' ' + jugador + '\n')
+
+            // TODO: Guardar record
+
+            this.setSimonTimer(jugador, 0, true)
+    
+            // Se ejecuta secuencia de error
+            encolarCancion('simon_dice_ok', true)
+    
         } else {
-            esSecuenciaCorrecta = false
+            console.log("[" + jugador +" dice]: " + this.secuenciaJugador)
+            // Se ejecuta el color seleccionado por el jugador
+            encolarCancion(color, true)
+    
+            if (this.secuenciaJugador.length === this.secuenciaSimon.length) {
+                // Secuencia entera correcta
+                this.secuenciaJugador =  []
+                this.secuenciaSimon.push(this.colors[colorIndexRandom])
+                console.log("[simon dice]: " + this.secuenciaSimon)
+                // Se ejecuta la secuencia de OK
+                encolarCancion('simon_dice_ok', true)
+    
+                // se ejecuta la secuencia de colores entera
+                for (let i = 0; i < this.secuenciaSimon.length; i++) {
+                    let cancion = this.secuenciaSimon[i]+'_'+ (i+1) 
+                    encolarCancion(cancion, true)
+                }
+
+            } else { // Secuencia acertada pero no completa
+                // Esperando pulsacion del jugador
+            }
+        
         }
     } else {
         esSecuenciaCorrecta = false
     }
 
-    if (esSecuenciaCorrecta === false) {
-        this.secuenciaSimon = []
-        // Se guardan los datos como nombre de jugador y aciertos
-        // Se ejecuta secuencia de error
-    } else {
-        // Se ejecuta el ultimo color
 
-        // Se incrementa el timeout para que le de tiempo a responder
-        this.timeoutIncrement = 15
-        // Se ejecuta secuencia de acierto
-        this.secuenciaSimon.push(this.colors[colorIndexRandom])
-        // Se ejecuta la secuencia con el nuevo color para la siguiente ronda
-    }
-
-    console.log("[simon dice]: " + this.secuenciaSimon)
-    return res.status(200).json({ esSecuenciaCorrecta: esSecuenciaCorrecta })
+    return res.status(200).json({ esSecuenciaCorrecta: esSecuenciaCorrecta, cantidadColores: this.secuenciaSimon.length })
 })
 
-function setSimonTimeout(jugador, segundos) {
+
+this.setSimonTimer  = function (jugador, segundos, post) {
+    clearTimeout(this.temporizadoresSimon[jugador]);
     this.temporizadoresSimon[jugador] = setTimeout(() => {
         // Acción a realizar cuando se alcanza el timeout
-        console.log(`Timeout para persona ${jugador}, se cierra su partida porque ha pasado mas de 10 segundos sin recibir una llamada`);
+        console.log(`Timeout para persona ${jugador}, se cierra su partida porque ha pasado mas de ${segundos} segundos sin recibir una llamada`);
 
         this.colaInterna = this.colaInterna.filter(elem => elem.body.jugador !== jugador) // Eliminamos al jugador porque se ha desconectado
-        delete this.temporizadoresSimon[jugador]; // Eliminar el temporizador después de la acción
+        this.cancionesCola = this.cancionesCola.filter(elem => elem !== 'Simon dice ' + jugador)
+        if (post) {
+            this.postSimonTimeout[jugador] = true
+        }
+        this.timeoutIncrement = 0
+        delete this.temporizadoresSimon[jugador]
+        //TODO: Encolar todas las peticiones hasta el siguiente simon dice
     }, segundos * 1000); // segundos de timeout
 }
 
@@ -344,11 +414,18 @@ function encolarCancion(cancion, esSimon) {
         // this.cancionesEnProceso = [] //this.cancionesEnProceso.filter(c => c != cancion)
 
         let action1 = URL_ENQUEUE_SONG(cancion, playlist)
-        axios.post(action1)
-            .then(() => {
-                console.log('Canción añadida a la cola: ' + cancion)
-            })
-            .catch(e => res.status(500).json({ response: 'No se ha podido añadir a la cola la canción: ' + e }))
+        if (esSimon != true ) {
+            axios.post(action1)
+                .then(() => {
+                    console.log('Canción añadida a la cola: ' + cancion)
+                })
+                .catch(e => res.status(500).json({ response: 'No se ha podido añadir a la cola la canción: ' + e }))
+        } else {
+            axios.post(action1)
+                .then(() => {
+                })
+                .catch(e => res.status(500).json({ response: 'No se ha podido añadir a la cola la canción: ' + e }))
+        }
 
         // // Paro el background
         // let action2 = URL_CLEAR_BACKGROUND
