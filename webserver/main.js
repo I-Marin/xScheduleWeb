@@ -108,7 +108,7 @@ app.get('/canciones', (req, res) => {
                         this.sonando = '    ' + resData2.data.step + ' ' + resData2.data.left.substring(0, resData2.data.left.indexOf('.', 0))
                         this.progreso = ~~(resData2.data.positionms / resData2.data.lengthms * 100)
                     }
-                    if (this.sonando.includes('simon_dice_')){
+                    if (this.sonando.includes('simon_dice_')) {
                         this.sonando = ''
                         this.progreso = 0
                     }
@@ -125,19 +125,19 @@ app.get('/canciones', (req, res) => {
                     this.cancionesCola = this.cancionesCola.filter(can => !(can == resData2.data.step))
 
                     let cancionesColaParaWeb = Array.from(this.cancionesCola)
-                    if (this.cancionesCola.length > 0 ) {
-                        if (this.cancionesCola[0].includes("Simon dice ")  && this.sonando == '') {
+                    if (this.cancionesCola.length > 0) {
+                        if (this.cancionesCola[0].includes("Simon dice ") && this.sonando == '') {
                             // Hay un simon dice jugando
                             this.sonando = this.cancionesCola[0]
                             this.progreso = 0
                             cancionesColaParaWeb.shift()
                         }
-                        }
+                    }
 
                     res.json(
                         {
                             cancionesCola: cancionesColaParaWeb,
- //                           cancionesCola: this.cancionesCola,
+                            //                           cancionesCola: this.cancionesCola,
                             cancionesSinReproducir: this.cancionesSeleccionables,
                             cancionesEnProceso: this.cancionesEnProceso,
                             lengthms: this.lengthms,
@@ -153,7 +153,7 @@ app.get('/canciones', (req, res) => {
 
 this.secuenciaSimon = []
 this.secuenciaJugador = []
-this.colors = ['simon_dice_verde', 'simon_dice_rojo',  'simon_dice_amarillo', 'simon_dice_azul','simon_dice_ok','simon_dice_error']
+this.colors = ['simon_dice_verde', 'simon_dice_rojo', 'simon_dice_amarillo', 'simon_dice_azul', 'simon_dice_ok', 'simon_dice_error']
 this.temporizadoresSimon = {}
 this.postSimonTimeout = {}
 
@@ -164,7 +164,7 @@ app.get('/simon', (req, res) => {
     var index = this.cancionesCola.indexOf(partidaString) // Buscamos el index en el que esta el simon del usuario
 
     if (index !== -1 && nuevaPartida === "true") {
-        return res. status(500).json({ error: 'Ese nombre de jugador ya tiene una partida abierta, por favor seleccione otro nombre de usuario' })
+        return res.status(500).json({ error: 'Ese nombre de jugador ya tiene una partida abierta, por favor seleccione otro nombre de usuario' })
     }
 
     if (index === -1 && nuevaPartida === "true") { // No existe el simon en la cola, se crea
@@ -173,7 +173,7 @@ app.get('/simon', (req, res) => {
         // Reiniciar o crear un nuevo temporizador para el ID
         this.setSimonTimer(jugador, 5)
         return res.status(200).json({ status: 'inQueue' })
-    } else if (index === -1  || this.postSimonTimeout[jugador]) {
+    } else if (index === -1 || this.postSimonTimeout[jugador]) {
         delete this.postSimonTimeout[jugador]
         return res.status(200).json({ status: 'quit' })
     }
@@ -185,32 +185,33 @@ app.get('/simon', (req, res) => {
         return res.status(200).json({ status: 'inQueue' })
     }
 
-     
+
 })
 
 this.timeoutIncrement = 0
 app.post('/simon', (req, res) => {
-    var { accion, color , jugador } = req.body
-    var colorIndexRandom = Math.floor(Math.random() * 3); // random entre 0 y 3
+    var { accion, color, jugador } = req.body
+    var colorIndexRandom = Math.floor(Math.random() * 3.999999); // random entre 0 y 3
     var esSecuenciaCorrecta = true
     let saveDirectory = 'C:/xLights/Show2023/secuencias/simon_dice/'
 
-    if (this.cancionesCola.indexOf("Simon dice "  + jugador) !== 0) {
+    if (this.cancionesCola.indexOf("Simon dice " + jugador) !== 0) {
         return
     }
 
-    this.timeoutIncrement = 10
+    this.timeoutIncrement = 5
     this.setSimonTimer(jugador, this.timeoutIncrement, true)
 
     if (accion === 'start') { // Accion que llega cuando llega a la web de los controles del simon dice
         // Si tiene un nombre váldio y no existe una partida con ese mismo nombre se añade la petición a la cola
-        this.secuenciaSimon  = []
+        this.secuenciaSimon = []
         this.secuenciaJugador = []
         this.secuenciaSimon.push(this.colors[colorIndexRandom])
         console.log("[simon dice]: " + this.secuenciaSimon)
+        encolarCancion('simon_dice_inicio', true)
         // encolamos la primera
         for (let i = 0; i < this.secuenciaSimon.length; i++) {
-            let cancion = this.secuenciaSimon[i]+'_'+ (i+1) 
+            let cancion = this.secuenciaSimon[i] + '_' + (i + 1)
             encolarCancion(cancion, true)
         }
     } else if (accion === 'select') { // Se captura la secuencia y se compara con la que hace simon
@@ -221,7 +222,7 @@ app.post('/simon', (req, res) => {
                 break
             }
         }
- 
+
         if (esSecuenciaCorrecta === false) {
             this.secuenciaSimon = []
             console.log("[simon dice] Secuencia fallada " + jugador)
@@ -230,38 +231,41 @@ app.post('/simon', (req, res) => {
             txt = saveDirectory + 'simon_dice.txt'
             let now = new Date();
             let logg = this.secuenciaJugador.length - 1
-            fs.appendFileSync(txt, now + ' ' + logg + ' aciertos '   + ' ' + jugador + '\n')
+            fs.appendFileSync(txt, now + ' ' + logg + ' aciertos ' + ' ' + jugador + '\n')
 
             // TODO: Guardar record
 
             this.setSimonTimer(jugador, 0, true)
-    
+
             // Se ejecuta secuencia de error
-            encolarCancion('simon_dice_ok', true)
-    
+            encolarCancion('simon_dice_error', true)
+
         } else {
-            console.log("[" + jugador +" dice]: " + this.secuenciaJugador)
+            console.log("[" + jugador + " dice]: " + this.secuenciaJugador)
             // Se ejecuta el color seleccionado por el jugador
-            encolarCancion(color, true)
-    
+            let cancionJ = color + '_' + (this.secuenciaJugador.length + 2)
+            encolarCancion(cancionJ, true)
+
             if (this.secuenciaJugador.length === this.secuenciaSimon.length) {
                 // Secuencia entera correcta
-                this.secuenciaJugador =  []
+                this.secuenciaJugador = []
                 this.secuenciaSimon.push(this.colors[colorIndexRandom])
                 console.log("[simon dice]: " + this.secuenciaSimon)
                 // Se ejecuta la secuencia de OK
                 encolarCancion('simon_dice_ok', true)
-    
+
                 // se ejecuta la secuencia de colores entera
                 for (let i = 0; i < this.secuenciaSimon.length; i++) {
-                    let cancion = this.secuenciaSimon[i]+'_'+ (i+1) 
+                    let cancion = this.secuenciaSimon[i] + '_' + (i + 1)
                     encolarCancion(cancion, true)
                 }
+                this.timeoutIncrement = 10 + 1 * (this.secuenciaSimon.length + 1)
+                this.setSimonTimer(jugador, this.timeoutIncrement, true)
 
             } else { // Secuencia acertada pero no completa
                 // Esperando pulsacion del jugador
             }
-        
+
         }
     } else {
         esSecuenciaCorrecta = false
@@ -272,7 +276,7 @@ app.post('/simon', (req, res) => {
 })
 
 
-this.setSimonTimer  = function (jugador, segundos, post) {
+this.setSimonTimer = function (jugador, segundos, post) {
     clearTimeout(this.temporizadoresSimon[jugador]);
     this.temporizadoresSimon[jugador] = setTimeout(() => {
         // Acción a realizar cuando se alcanza el timeout
@@ -305,7 +309,7 @@ app.post('/canciones', (req, res) => {
     //     return res.status(500).json({ message: 'Ya hay mas de 5 minutos de canciones, hay que esperar a que termine alguna' })
 
     this.cancionesCola.push(cancion) // Metemos la cancion en cola para que se muestre en la web
-    if (this.cancionesCola.filter(elemCola => elemCola.includes('simon')).length > 0) {
+    if (this.cancionesCola.filter(elemCola => elemCola.includes('Simon dice ')).length > 0) {
         this.colaInterna.push(req) // Metemos el object de la peticion para hacerla cuando no haya simones en cola
         return
     }
@@ -414,7 +418,7 @@ function encolarCancion(cancion, esSimon) {
         // this.cancionesEnProceso = [] //this.cancionesEnProceso.filter(c => c != cancion)
 
         let action1 = URL_ENQUEUE_SONG(cancion, playlist)
-        if (esSimon != true ) {
+        if (esSimon != true) {
             axios.post(action1)
                 .then(() => {
                     console.log('Canción añadida a la cola: ' + cancion)
@@ -517,7 +521,7 @@ app.post('/comentarios', (req, res) => {
     let request = req.body
     request.date = new Date()
     fs.appendFileSync(FILE_COMENTARIOS, JSON.stringify(request) + SEPARADOR)
-    res.redirect(`http://${BASE_URL("31500")}/xScheduleWeb/comentarios.html`)
+    res.redirect(`http://micasasevedelejos.tudelanicos.com:31500/xScheduleWeb/comentarios.html`)
 })
 
 // Temporizador para poner ANIMACIONES
@@ -525,7 +529,7 @@ function startBackground() {
     //console.log('Background timer')
     axios.get(URL_GET_PLAYING_STATUS)
         .then(resData => {
-            if (resData.data.status == 'idle') {
+            if (resData.data.status == 'idle' && this.secuenciaSimon.length === 0) {
                 // Pongo las animaciones
                 let action = URL_SET_BACKGROUND(PLAYLIST_ANIMACIONES)
                 axios.post(action)
